@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -9,6 +9,29 @@ export default function SignIn() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const router = useRouter();
+
+  // Check if the user is already authenticated when the component mounts
+  useEffect(() => {
+    const checkAuthentication = async () => {
+      try {
+        const response = await fetch(`${process.env.ORIGIN_URL}/returnUsername`, {
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.username) {
+            // If username is returned, user is authenticated
+            router.push("/workspace");
+          }
+        }
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+      }
+    };
+
+    checkAuthentication();
+  }, [router]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

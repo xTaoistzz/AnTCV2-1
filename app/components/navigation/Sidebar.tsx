@@ -7,11 +7,26 @@ import { useParams } from "next/navigation";
 const Sidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [ringColor, setRingColor] = useState("ring-gray-500"); // Default ring color
   const params = useParams<{ id: string }>();
-  const type = localStorage.getItem("Type");
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const updateRingColor = () => {
+    const type = localStorage.getItem("Type");
+    const color = type === "classification" ? "ring-red-500" 
+                : type === "detection" ? "ring-yellow-500"
+                : type === "segmentation" ? "ring-blue-500"
+                : "ring-gray-500"; // Default ring color
+    setRingColor(color);
+  };
+
+  const handleStorageChange = (event: StorageEvent) => {
+    if (event.key === "Type") {
+      updateRingColor();
+    }
   };
 
   useEffect(() => {
@@ -40,13 +55,12 @@ const Sidebar = () => {
     };
 
     fetchImage();
-  }, [params.id]);
+    updateRingColor();
 
-  // Determine the ring color based on the type
-  const ringColor = type === "classification" ? "ring-red-500" 
-                    : type === "detection" ? "ring-yellow-500"
-                    : type === "segmentation" ? "ring-blue-500"
-                    : "ring-gray-500"; // Default ring color
+    // Listen for changes to localStorage
+    window.addEventListener("storage", handleStorageChange);
+
+  }, [params.id]);
 
   return (
     <div className="flex bg-gray-900">

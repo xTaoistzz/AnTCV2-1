@@ -116,7 +116,7 @@ const Class = () => {
           
           <button
             onClick={handleShowCreate}
-            className=" w-1/12 border border-gray-600 bg-gray-800 text-white hover:bg-teal-600 transition-colors duration-300 hover:text-gray-800 font-normal rounded-lg p-2"
+            className=" border border-gray-600 bg-gray-800 text-white hover:bg-teal-600 transition-colors duration-300 hover:text-gray-800 font-normal rounded-lg p-2"
           >
             Create Class
           </button>

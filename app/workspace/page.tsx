@@ -178,10 +178,15 @@ export default function WorkspacePage() {
     <main className="bg-gradient-to-r from-gray-800 via-gray-900 to-black min-h-screen flex flex-col items-center text-white">
       <nav className="bg-white bg-opacity-10 p-3 flex rounded-lg text-center items-center justify-between fixed top-4 left-0 right-0 mx-4 drop-shadow-2xl border border-gray-700">
         <div className="text-teal-300 font-bold text-xl">AnTCV</div>
-        <div>
-          <Link href="/sign-in">
+        <div className="space-x-3">
+          <Link href="/workspace">
             <button className="text-white bg-teal-500 p-2 rounded-lg hover:bg-teal-700 transition-all">
-              Sign-In
+              WorkSpace
+            </button>
+          </Link>
+          <Link href="/">
+            <button className="text-white bg-teal-500 p-2 rounded-lg hover:bg-teal-700 transition-all">
+              Sign Out
             </button>
           </Link>
         </div>
