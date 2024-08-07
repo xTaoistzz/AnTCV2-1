@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { AiFillSetting } from "react-icons/ai";
 import { HiMiniPhoto } from "react-icons/hi2";
-
+import Navbar from "../components/navigation/Navbar";
 // Define types for project data and state
 interface Project {
   idproject: number;
@@ -176,7 +176,7 @@ export default function WorkspacePage() {
 
   return (
     <main className="bg-gradient-to-r from-gray-800 via-gray-900 to-black min-h-screen flex flex-col items-center text-white">
-      <nav className="bg-white bg-opacity-10 p-3 flex rounded-lg text-center items-center justify-between fixed top-4 left-0 right-0 mx-4 drop-shadow-2xl border border-gray-700">
+      {/* <nav className="bg-white bg-opacity-10 p-3 flex rounded-lg text-center items-center justify-between fixed top-4 left-0 right-0 mx-4 drop-shadow-2xl border border-gray-700">
         <div className="text-teal-300 font-bold text-xl">AnTCV</div>
         <div className="space-x-3">
           <Link href="/workspace">
@@ -190,7 +190,8 @@ export default function WorkspacePage() {
             </button>
           </Link>
         </div>
-      </nav>
+      </nav> */}
+      <Navbar/>
       <section className="p-6 w-full max-w-4xl mx-auto mt-20">
         <h1 className="text-3xl font-bold mb-4">
           Welcome to Workspace, xTaoistzz!

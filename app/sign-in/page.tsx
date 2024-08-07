@@ -135,8 +135,9 @@ export default function SignIn() {
       </footer>
       {isModalVisible && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white text-black p-6 rounded-lg shadow-lg">
-            <p>Login Successful!</p>
+          <div className="bg-gray-800 rounded-lg p-6 space-y-4 shadow-lg text-center">
+            <h2 className="text-xl font-semibold text-teal-300">Login Successful!</h2>
+            <p className="text-gray-300">You will be redirected shortly...</p>
           </div>
         </div>
       )}

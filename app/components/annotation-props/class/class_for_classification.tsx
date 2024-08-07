@@ -16,12 +16,11 @@ const Class = () => {
   const [type, setType] = useState<string | null>(null);
   const [dropzoneVisible, setDropzoneVisible] = useState<string | null>(null);
   const [imageData, setImageData] = useState<{ [key: string]: string[] }>({});
-  const [imageCount, setImageCount] = useState<{ [key: string]: number }>({});
-  const [galleryVisible, setGalleryVisible] = useState<{
-    [key: string]: boolean;
-  }>({});
+  const [galleryVisible, setGalleryVisible] = useState<{ [key: string]: boolean }>({});
   const [currentPage, setCurrentPage] = useState<{ [key: string]: number }>({});
-  const [imagesPerPage] = useState(15); // Number of images per page
+  const [imagesPerPage] = useState(20); // Number of images per page
+  const [renameClassIndex, setRenameClassIndex] = useState<string | null>(null);
+  const [newClassLabel, setNewClassLabel] = useState<string>("");
   const params = useParams<{ id: string }>();
 
   const fetchClass = useCallback(async () => {
@@ -56,10 +55,6 @@ const Class = () => {
         );
         const data = await res.json();
         setImageData((prev) => ({ ...prev, [classIndex]: data.imgAll }));
-        setImageCount((prev) => ({
-          ...prev,
-          [classIndex]: data.imgAll.length,
-        }));
         setCurrentPage((prev) => ({ ...prev, [classIndex]: 1 })); // Reset to first page
       } catch (error) {
         console.error("Error fetching images:", error);
@@ -67,6 +62,80 @@ const Class = () => {
     },
     [params.id]
   );
+
+  const handleDeleteClass = async (classIndex: string) => {
+    try {
+      const response = await fetch(
+        `${process.env.ORIGIN_URL}/classification/deleteClass`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            idproject: params.id,
+            index: classIndex,
+          }),
+          credentials: "include",
+        }
+      );
+
+      if (response.ok) {
+        // Remove the deleted class from the state
+        setTypedata((prev) => prev.filter((cls) => cls.class_index !== classIndex));
+        setImageData((prev) => {
+          const updated = { ...prev };
+          delete updated[classIndex];
+          return updated;
+        });
+        setCurrentPage((prev) => {
+          const updated = { ...prev };
+          delete updated[classIndex];
+          return updated;
+        });
+      } else {
+        console.error("Error deleting class:", await response.text());
+      }
+    } catch (error) {
+      console.error("Error deleting class:", error);
+    }
+  };
+
+  const handleRenameClass = async (classIndex: string) => {
+    try {
+      const response = await fetch(
+        `${process.env.ORIGIN_URL}/classification/updateClass`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            idproject: params.id,
+            index: classIndex,
+            class_label: newClassLabel,
+          }),
+          credentials: "include",
+        }
+      );
+
+      if (response.ok) {
+        setTypedata((prev) =>
+          prev.map((cls) =>
+            cls.class_index === classIndex
+              ? { ...cls, class_label: newClassLabel }
+              : cls
+          )
+        );
+        setRenameClassIndex(null);
+        setNewClassLabel("");
+      } else {
+        console.error("Error renaming class:", await response.text());
+      }
+    } catch (error) {
+      console.error("Error renaming class:", error);
+    }
+  };
 
   useEffect(() => {
     const storedType = localStorage.getItem("Type");
@@ -136,84 +205,106 @@ const Class = () => {
                   {parseInt(type.class_index) + 1}
                 </div>
                 <div className="p-2 bg-gray-800 text-white rounded-md shadow-md">
-                  {type.class_label}
+                  {renameClassIndex === type.class_index ? (
+                    <div className="flex items-center space-x-2 text-black">
+                      <input
+                        type="text"
+                        value={newClassLabel}
+                        placeholder={type.class_label}
+                        onChange={(e) => setNewClassLabel(e.target.value)}
+                        className="p-1 rounded-md"
+                      />
+                      <button
+                        onClick={() => handleRenameClass(type.class_index)}
+                        className="border border-gray-600 bg-gray-800 text-white hover:bg-teal-600 transition-colors duration-300 font-normal rounded-lg p-1"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setRenameClassIndex(null)}
+                        className="border border-gray-600 bg-gray-800 text-white hover:bg-red-600 transition-colors duration-300 font-normal rounded-lg p-1"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <span>{type.class_label}</span>
+                  )}
                 </div>
               </div>
               <div className="flex space-x-2">
                 <button
-                  onClick={() => toggleDropzone(type.class_index)}
-                  className="border border-gray-600 bg-gray-800 text-white hover:bg-teal-600 transition-colors duration-300 hover:text-gray-800 font-normal rounded-lg p-2"
+                  onClick={() => handleDeleteClass(type.class_index)}
+                  className="border border-gray-600 bg-red-600 text-white hover:bg-red-800 transition-colors duration-300 font-normal rounded-lg p-2"
                 >
-                  Upload Image
+                  Delete
+                </button>
+                <button
+                  onClick={() =>
+                    renameClassIndex === type.class_index
+                      ? setRenameClassIndex(null)
+                      : setRenameClassIndex(type.class_index)
+                  }
+                  className="border border-gray-600 bg-blue-600 text-white hover:bg-blue-800 transition-colors duration-300 font-normal rounded-lg p-2"
+                >
+                  Rename
+                </button>
+                <button
+                  onClick={() => toggleDropzone(type.class_index)}
+                  className="border border-gray-600 bg-green-600 text-white hover:bg-green-800 transition-colors duration-300 font-normal rounded-lg p-2"
+                >
+                  Upload
                 </button>
                 <button
                   onClick={() => toggleGallery(type.class_index)}
-                  className="border border-gray-600 bg-gray-800 text-white hover:bg-teal-600 transition-colors duration-300 hover:text-gray-800 font-normal rounded-lg p-2"
+                  className="border border-gray-600 bg-purple-600 text-white hover:bg-purple-800 transition-colors duration-300 font-normal rounded-lg p-2"
                 >
-                  {galleryVisible[type.class_index]
-                    ? `Hide Gallery (${imageCount[type.class_index] || 0} images)`
-                    : `View Gallery (${imageCount[type.class_index] || 0} images)`}
+                  {galleryVisible[type.class_index] ? "Hide Gallery" : "Show Gallery"}
                 </button>
               </div>
             </div>
             {dropzoneVisible === type.class_index && (
               <Dropzone
-                class_index={type.class_index} // Pass `class_index` directly as a string
+                class_index={type.class_index}
               />
             )}
-            {/* Gallery Section */}
-            {galleryVisible[type.class_index] &&
-              imageData[type.class_index] && (
-                <div>
-                  <div className="mt-4 grid grid-cols-5 gap-4">
-                    {getPaginatedImages(type.class_index).map((imageName) => (
-                      <div key={imageName} className="relative">
-                        <img
-                          src={`${process.env.ORIGIN_URL}/img/${params.id}/classification/${type.class_index}/${imageName}`}
-                          alt={imageName}
-                          className="w-36 h-36 object-cover rounded-lg" // 150x150 px
-                        />
-                        <div className="absolute top-0 left-0 p-2 bg-black bg-opacity-50 text-white text-sm rounded-br-lg">
-                          {imageName}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {/* Pagination Controls */}
-                  <div className="mt-4 flex justify-between">
+            {galleryVisible[type.class_index] && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-10 gap-4">
+                  {getPaginatedImages(type.class_index).map((image, index) => (
+                    <div key={image} className="flex flex-col items-center">
+                      <img
+                        src={`${process.env.ORIGIN_URL}/img/${params.id}/classification/${type.class_index}/${image}`}
+                        alt={image}
+                        className="w-36 h-36 object-cover rounded-lg"
+                      />
+                      <span className="text-white mt-2">{index + 1 + ((currentPage[type.class_index] - 1) * imagesPerPage)}</span>
+                    </div>
+                  ))}
+                </div>
+                {imageData[type.class_index]?.length > imagesPerPage && (
+                  <div className="flex justify-center mt-4">
                     <button
-                      onClick={() =>
-                        handlePageChange(
-                          type.class_index,
-                          (currentPage[type.class_index] || 1) - 1
-                        )
-                      }
+                      onClick={() => handlePageChange(type.class_index, (currentPage[type.class_index] || 1) - 1)}
                       disabled={(currentPage[type.class_index] || 1) <= 1}
-                      className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-teal-600"
+                      className="border border-gray-600 bg-gray-800 text-white hover:bg-gray-600 transition-colors duration-300 font-normal rounded-lg p-2"
                     >
                       Previous
                     </button>
-                    <span className="text-white">
-                      Page {currentPage[type.class_index] || 1}
+                    <span className="mx-2 text-white">
+                      Page {(currentPage[type.class_index] || 1)}
                     </span>
                     <button
-                      onClick={() =>
-                        handlePageChange(
-                          type.class_index,
-                          (currentPage[type.class_index] || 1) + 1
-                        )
-                      }
-                      disabled={
-                        getPaginatedImages(type.class_index).length <
-                        imagesPerPage
-                      }
-                      className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-teal-600"
+                      onClick={() => handlePageChange(type.class_index, (currentPage[type.class_index] || 1) + 1)}
+                      disabled={(imageData[type.class_index]?.length || 0) <= ((currentPage[type.class_index] || 1) * imagesPerPage)}
+                      className="border border-gray-600 bg-gray-800 text-white hover:bg-gray-600 transition-colors duration-300 font-normal rounded-lg p-2"
                     >
                       Next
                     </button>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
