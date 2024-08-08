@@ -4,7 +4,7 @@ import Link from "next/link";
 import { AiFillSetting } from "react-icons/ai";
 import { HiMiniPhoto } from "react-icons/hi2";
 import Navbar from "../components/navigation/Navbar";
-// Define types for project data and state
+
 interface Project {
   idproject: number;
   project_name: string;
@@ -27,6 +27,7 @@ export default function WorkspacePage() {
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | null } | null>(null);
   const [firstImgMap, setFirstImgMap] = useState<{ [key: number]: string }>({});
+  const [username, setUsername] = useState<string>("");
 
   const fetchProjects = async () => {
     try {
@@ -49,6 +50,23 @@ export default function WorkspacePage() {
     }
   };
 
+  const fetchUsername = async () => {
+    try {
+      const response = await fetch(`${process.env.ORIGIN_URL}/returnUsername`, {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUsername(data.username);
+      } else {
+        setError("Failed to fetch username");
+      }
+    } catch (error) {
+      console.error("An error occurred while fetching the username:", error);
+      setError("An error occurred while fetching the username.");
+    }
+  };
+
   const fetchFirstImages = async (projects: Project[]) => {
     const imgMap: { [key: number]: string } = {};
     for (const project of projects) {
@@ -64,7 +82,7 @@ export default function WorkspacePage() {
 
         if (response.ok) {
           const img = await response.json();
-          imgMap[project.idproject] = img.imgName; // Assuming the response contains the image name as imgName
+          imgMap[project.idproject] = img.imgName;
         }
       } catch (error) {
         console.error(`Error fetching image for project ${project.idproject}:`, error);
@@ -75,6 +93,7 @@ export default function WorkspacePage() {
 
   useEffect(() => {
     fetchProjects();
+    fetchUsername();
   }, []);
 
   const handleCreateProject = async () => {
@@ -92,7 +111,7 @@ export default function WorkspacePage() {
         const createdProject = await response.json();
         setProjects([...projects, createdProject]);
         setNewProject({ project_name: "", description: "" });
-        setIsModalOpen(false); // Close the modal after creating the project
+        setIsModalOpen(false); 
         fetchProjects();
       } else {
         console.error("Failed to create project");
@@ -176,25 +195,10 @@ export default function WorkspacePage() {
 
   return (
     <main className="bg-gradient-to-r from-gray-800 via-gray-900 to-black min-h-screen flex flex-col items-center text-white">
-      {/* <nav className="bg-white bg-opacity-10 p-3 flex rounded-lg text-center items-center justify-between fixed top-4 left-0 right-0 mx-4 drop-shadow-2xl border border-gray-700">
-        <div className="text-teal-300 font-bold text-xl">AnTCV</div>
-        <div className="space-x-3">
-          <Link href="/workspace">
-            <button className="text-white bg-teal-500 p-2 rounded-lg hover:bg-teal-700 transition-all">
-              WorkSpace
-            </button>
-          </Link>
-          <Link href="/">
-            <button className="text-white bg-teal-500 p-2 rounded-lg hover:bg-teal-700 transition-all">
-              Sign Out
-            </button>
-          </Link>
-        </div>
-      </nav> */}
       <Navbar/>
       <section className="p-6 w-full max-w-4xl mx-auto mt-20">
         <h1 className="text-3xl font-bold mb-4">
-          Welcome to Workspace, xTaoistzz!
+          Welcome to Workspace, {username}!
         </h1>
         <div className="mb-4">
           <button
@@ -251,7 +255,6 @@ export default function WorkspacePage() {
           </ul>
         )}
 
-        {/* Create Project Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-gray-900 p-6 rounded-lg shadow-lg w-1/3">
@@ -291,7 +294,6 @@ export default function WorkspacePage() {
           </div>
         )}
 
-        {/* Edit Project Modal */}
         {isEditModalOpen && editProject && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-gray-900 p-6 rounded-lg shadow-lg w-1/3">

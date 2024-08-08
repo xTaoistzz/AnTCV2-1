@@ -4,6 +4,8 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useParams } from "next/navigation";
 import CreateClass from "@/app/components/annotation-props/class/CreateClass";
 import Dropzone from "../upload/classification_upload";
+import Gallery from "./classification_props/gallery";
+import RenameClass from "./classification_props/renameClass";
 
 interface Label {
   class_index: string;
@@ -15,8 +17,8 @@ const Class = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [type, setType] = useState<string | null>(null);
   const [dropzoneVisible, setDropzoneVisible] = useState<string | null>(null);
-  const [imageData, setImageData] = useState<{ [key: string]: string[] }>({});
   const [galleryVisible, setGalleryVisible] = useState<{ [key: string]: boolean }>({});
+  const [imageData, setImageData] = useState<{ [key: string]: string[] }>({});
   const [currentPage, setCurrentPage] = useState<{ [key: string]: number }>({});
   const [imagesPerPage] = useState(20); // Number of images per page
   const [renameClassIndex, setRenameClassIndex] = useState<string | null>(null);
@@ -206,27 +208,17 @@ const Class = () => {
                 </div>
                 <div className="p-2 bg-gray-800 text-white rounded-md shadow-md">
                   {renameClassIndex === type.class_index ? (
-                    <div className="flex items-center space-x-2 text-black">
-                      <input
-                        type="text"
-                        value={newClassLabel}
-                        placeholder={type.class_label}
-                        onChange={(e) => setNewClassLabel(e.target.value)}
-                        className="p-1 rounded-md"
-                      />
-                      <button
-                        onClick={() => handleRenameClass(type.class_index)}
-                        className="border border-gray-600 bg-gray-800 text-white hover:bg-teal-600 transition-colors duration-300 font-normal rounded-lg p-1"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => setRenameClassIndex(null)}
-                        className="border border-gray-600 bg-gray-800 text-white hover:bg-red-600 transition-colors duration-300 font-normal rounded-lg p-1"
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                    <RenameClass
+                      currentLabel={type.class_label}
+                      onSave={(newLabel) => {
+                        setNewClassLabel(newLabel);
+                        handleRenameClass(type.class_index);
+                      }}
+                      onCancel={() => {
+                        setRenameClassIndex(null);
+                        setNewClassLabel("");
+                      }}
+                    />
                   ) : (
                     <span>{type.class_label}</span>
                   )}
@@ -269,41 +261,14 @@ const Class = () => {
               />
             )}
             {galleryVisible[type.class_index] && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-10 gap-4">
-                  {getPaginatedImages(type.class_index).map((image, index) => (
-                    <div key={image} className="flex flex-col items-center">
-                      <img
-                        src={`${process.env.ORIGIN_URL}/img/${params.id}/classification/${type.class_index}/${image}`}
-                        alt={image}
-                        className="w-36 h-36 object-cover rounded-lg"
-                      />
-                      <span className="text-white mt-2">{index + 1 + ((currentPage[type.class_index] - 1) * imagesPerPage)}</span>
-                    </div>
-                  ))}
-                </div>
-                {imageData[type.class_index]?.length > imagesPerPage && (
-                  <div className="flex justify-center mt-4">
-                    <button
-                      onClick={() => handlePageChange(type.class_index, (currentPage[type.class_index] || 1) - 1)}
-                      disabled={(currentPage[type.class_index] || 1) <= 1}
-                      className="border border-gray-600 bg-gray-800 text-white hover:bg-gray-600 transition-colors duration-300 font-normal rounded-lg p-2"
-                    >
-                      Previous
-                    </button>
-                    <span className="mx-2 text-white">
-                      Page {(currentPage[type.class_index] || 1)}
-                    </span>
-                    <button
-                      onClick={() => handlePageChange(type.class_index, (currentPage[type.class_index] || 1) + 1)}
-                      disabled={(imageData[type.class_index]?.length || 0) <= ((currentPage[type.class_index] || 1) * imagesPerPage)}
-                      className="border border-gray-600 bg-gray-800 text-white hover:bg-gray-600 transition-colors duration-300 font-normal rounded-lg p-2"
-                    >
-                      Next
-                    </button>
-                  </div>
-                )}
-              </div>
+              <Gallery
+                images={getPaginatedImages(type.class_index)}
+                classIndex={type.class_index}
+                currentPage={currentPage[type.class_index] || 1}
+                onPageChange={handlePageChange}
+                totalImages={imageData[type.class_index]?.length || 0}
+                imagesPerPage={imagesPerPage}
+              />
             )}
           </div>
         ))}

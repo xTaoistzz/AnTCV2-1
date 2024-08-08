@@ -28,12 +28,12 @@ export default function WorkID() {
           <div className="bg-gray-800 p-6 rounded-lg w-80 transition-transform transform scale-100 ease-out">
             <h2 className="text-2xl font-bold mb-4">Select Type of Annotation</h2>
             <div className="space-y-2">
-              <button
+              {/* <button
                 onClick={() => handleTypeSelection("classification")}
                 className="w-full bg-red-500 py-2 rounded-lg text-white hover:bg-red-600 transition duration-300"
               >
                 Classification
-              </button>
+              </button> */}
               <button
                 onClick={() => handleTypeSelection("detection")}
                 className="w-full bg-yellow-500 py-2 rounded-lg text-white hover:bg-yellow-600 transition duration-300"

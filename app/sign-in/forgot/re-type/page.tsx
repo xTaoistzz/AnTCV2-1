@@ -1,37 +1,14 @@
 "use client";
 
-import { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function SignIn() {
-  const [formData, setFormData] = useState({ username: "", password: "" });
+export default function ReTypePassword() {
+  const [formData, setFormData] = useState({ password: "", conPassword: "" });
   const [errorMessage, setErrorMessage] = useState("");
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
-
-  // Check if the user is already authenticated when the component mounts
-  useEffect(() => {
-    const checkAuthentication = async () => {
-      try {
-        const response = await fetch(`${process.env.ORIGIN_URL}/returnUsername`, {
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.username) {
-            // If username is returned, user is authenticated
-            router.push("/workspace");
-          }
-        }
-      } catch (error) {
-        console.error("Error checking authentication:", error);
-      }
-    };
-
-    checkAuthentication();
-  }, [router]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -40,28 +17,32 @@ export default function SignIn() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { username, password } = formData;
+    const { password, conPassword } = formData;
+
+    // if (password !== conPassword) {
+    //   setErrorMessage("Passwords do not match.");
+    //   return;
+    // }
 
     try {
-      const response = await fetch(`${process.env.ORIGIN_URL}/login`, {
+      const response = await fetch(`${process.env.ORIGIN_URL}/newPassword`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ password, conPassword }),
       });
 
       if (response.ok) {
-        // Handle successful login (e.g., show success modal)
-        setErrorMessage(""); // Clear the error message on successful login
-        setIsModalVisible(true);
+        setSuccessMessage("Your password has been reset successfully.");
+        setErrorMessage(""); // Clear error message
         setTimeout(() => {
-          router.push("/workspace");
+          router.push("/sign-in");
         }, 2000); // Redirect after 2 seconds
       } else {
         const data = await response.json();
-        setErrorMessage(data.message || "Login failed");
+        setErrorMessage(data.message || "Failed to reset password. Please try again.");
       }
     } catch (error) {
       setErrorMessage("An error occurred. Please try again later.");
@@ -82,65 +63,48 @@ export default function SignIn() {
         </div>
       </nav>
       <section className="flex flex-col items-center justify-center flex-grow w-full px-4">
-        <h1 className="text-4xl font-bold mb-8 animate-pulse-glow">Sign In to AnTCV</h1>
+        <h1 className="text-4xl font-bold mb-8 animate-pulse-glow">Reset Your Password</h1>
         <form className="bg-white bg-opacity-10 p-8 rounded-lg drop-shadow-2xl border border-gray-700 max-w-md w-full" onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-teal-300 text-sm font-bold mb-2" htmlFor="username">
-              Username
-            </label>
-            <input
-              className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-teal-500"
-              type="text"
-              id="username"
-              name="username"
-              placeholder="Enter your username"
-              value={formData.username}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="mb-6">
             <label className="block text-teal-300 text-sm font-bold mb-2" htmlFor="password">
-              Password
+              New Password
             </label>
             <input
               className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-teal-500"
               type="password"
               id="password"
               name="password"
-              placeholder="Enter your password"
+              placeholder="Enter your new password"
               value={formData.password}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-teal-300 text-sm font-bold mb-2" htmlFor="conPassword">
+              Confirm Password
+            </label>
+            <input
+              className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-teal-500"
+              type="password"
+              id="conPassword"
+              name="conPassword"
+              placeholder="Confirm your new password"
+              value={formData.conPassword}
               onChange={handleChange}
             />
             {errorMessage && <p className="text-red-500 text-xs italic mt-2">{errorMessage}</p>}
           </div>
           <div className="flex items-center justify-between">
             <button className="bg-teal-500 text-white py-2 px-4 rounded-lg hover:bg-teal-700 transition-all">
-              Sign In
+              Reset Password
             </button>
-            <Link href="/sign-in/forgot">
-              <div className="text-teal-300 hover:text-teal-500 text-sm">Forgot Password?</div>
-            </Link>
           </div>
-          <div className="flex items-center justify-center mt-4">
-            <Link href="/sign-up">
-              <button className="bg-transparent border border-teal-500 text-teal-500 py-2 px-4 rounded-lg hover:bg-teal-700 hover:text-white transition-all">
-                Don't have an account? Sign Up
-              </button>
-            </Link>
-          </div>
+          {successMessage && <p className="text-teal-300 text-xs italic mt-4">{successMessage}</p>}
         </form>
       </section>
       <footer className="bg-gray-900 bg-opacity-50 py-4 w-full text-center text-gray-400 border-t border-gray-700">
         © 2024 AnTCV. All rights reserved.
       </footer>
-      {isModalVisible && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-gray-800 rounded-lg p-6 space-y-4 shadow-lg text-center">
-            <h2 className="text-xl font-semibold text-teal-300">Login Successful!</h2>
-            <p className="text-gray-300">You will be redirected shortly...</p>
-          </div>
-        </div>
-      )}
       <style jsx>{`
         @keyframes pulseGlow {
           0%, 100% {

@@ -8,12 +8,10 @@ const SidebarMenu = () => {
     const params = useParams<{ id: string }>();
     const [selectedType, setSelectedType] = useState<string | null>(null);
 
-    // Load the selected type from localStorage on component mount
     useEffect(() => {
         setSelectedType(localStorage.getItem("Type"));
-    }, []);
+    }, [selectedType]);
 
-    // Handle type selection and navigate to the corresponding page
     const handleSelectType = (type: string) => {
         localStorage.setItem("Type", type);
         setSelectedType(type);
@@ -22,7 +20,6 @@ const SidebarMenu = () => {
 
     return (
         <nav className="space-y-4">
-            {/* Navigation Links */}
             <ul className="space-y-2">
                 <li>
                     <Link href={`/workspace/${params.id}/${selectedType}`}>
@@ -65,64 +62,41 @@ const SidebarMenu = () => {
                 </li>
             </ul>
 
-            {/* Type Selection Buttons */}
             <div className="pt-3 space-y-2 flex flex-col">
                 <div>Change Type to</div>
-                <Button
-                    type="classification"
-                    selectedType={selectedType}
-                    handleSelectType={handleSelectType}
-                    bgColor="bg-red-700"
-                    hoverColor="bg-red-300"
-                    ringColor="ring-red-500"
-                />
-                <Button
-                    type="detection"
-                    selectedType={selectedType}
-                    handleSelectType={handleSelectType}
-                    bgColor="bg-yellow-700"
-                    hoverColor="bg-yellow-300"
-                    ringColor="ring-yellow-500"
-                />
-                <Button
-                    type="segmentation"
-                    selectedType={selectedType}
-                    handleSelectType={handleSelectType}
-                    bgColor="bg-blue-700"
-                    hoverColor="bg-blue-300"
-                    ringColor="ring-blue-500"
-                />
+                <button
+                    className={`p-2 rounded-r-lg focus:outline-none focus:ring-4 transition duration-300 ${
+                        selectedType === "classification"
+                            ? "bg-red-700 ring-red-500 text-white shadow-lg"
+                            : "bg-red-500 hover:bg-red-700 ring-red-500 text-gray-900"
+                    }`}
+                    onClick={() => handleSelectType("classification")}
+                >
+                    Classification
+                </button>
+                <button
+                    className={`p-2 rounded-r-lg focus:outline-none focus:ring-4 transition duration-300 ${
+                        selectedType === "detection"
+                            ? "bg-yellow-700 ring-yellow-500 text-white shadow-lg"
+                            : "bg-yellow-500 hover:bg-yellow-700 ring-yellow-500 text-gray-900"
+                    }`}
+                    onClick={() => handleSelectType("detection")}
+                >
+                    Detection
+                </button>
+                <button
+                    className={`p-2 rounded-r-lg focus:outline-none focus:ring-4 transition duration-300 ${
+                        selectedType === "segmentation"
+                            ? "bg-blue-700 ring-blue-500 text-white shadow-lg"
+                            : "bg-blue-500 hover:bg-blue-700 ring-blue-500 text-gray-900"
+                    }`}
+                    onClick={() => handleSelectType("segmentation")}
+                >
+                    Segmentation
+                </button>
             </div>
         </nav>
     );
 };
-
-// Button Component for type selection
-const Button = ({
-    type,
-    selectedType,
-    handleSelectType,
-    bgColor,
-    hoverColor,
-    ringColor,
-}: {
-    type: string;
-    selectedType: string | null;
-    handleSelectType: (type: string) => void;
-    bgColor: string;
-    hoverColor: string;
-    ringColor: string;
-}) => (
-    <button
-        className={`p-2 rounded-r-lg focus:outline-none focus:ring-4 transition duration-300 ${
-            selectedType === type
-                ? `${bgColor} ring-${ringColor} text-white shadow-lg`
-                : `${bgColor} hover:${hoverColor} ring-${ringColor} text-gray-900`
-        }`}
-        onClick={() => handleSelectType(type)}
-    >
-        {type.charAt(0).toUpperCase() + type.slice(1)}
-    </button>
-);
 
 export default SidebarMenu;
