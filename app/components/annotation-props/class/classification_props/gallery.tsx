@@ -21,15 +21,16 @@ const Gallery: React.FC<GalleryProps> = ({
     const params = useParams<{ id: string }>();
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-10 gap-4">
+      <div className="grid grid-cols-6 gap-4">
         {images.map((image, index) => (
           <div key={image} className="flex flex-col items-center">
+            <span className="text-white mt-2">{index + 1 + ((currentPage - 1) * imagesPerPage)} : {image}</span>
             <img
               src={`${process.env.ORIGIN_URL}/img/${params.id}/classification/${classIndex}/${image}`}
               alt={image}
               className="w-36 h-36 object-cover rounded-lg"
             />
-            <span className="text-white mt-2">{index + 1 + ((currentPage - 1) * imagesPerPage)}</span>
+            
           </div>
         ))}
       </div>

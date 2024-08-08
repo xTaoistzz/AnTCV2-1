@@ -1,9 +1,15 @@
+// Updated WorkspacePage component
 "use client";
+
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { AiFillSetting } from "react-icons/ai";
 import { HiMiniPhoto } from "react-icons/hi2";
 import Navbar from "../components/navigation/Navbar";
+import CreateProject from "../components/workspace_props/create";
+import EditProject from "../components/workspace_props/edit";
+import AddCollaborator from "../components/workspace_props/share";
+import SharedProjects from "../components/workspace_props/shareproject";// Import the new component
+import { IoMdPeople } from "react-icons/io";
 
 interface Project {
   idproject: number;
@@ -13,19 +19,16 @@ interface Project {
 
 export default function WorkspacePage() {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [newProject, setNewProject] = useState<{
-    project_name: string;
-    description: string;
-  }>({
-    project_name: "",
-    description: "",
-  });
   const [editProject, setEditProject] = useState<Project | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+  const [isAddCollaboratorOpen, setIsAddCollaboratorOpen] = useState<number | null>(null); // State to manage AddCollaborator modal
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | null } | null>(null);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: "success" | "error" | null;
+  } | null>(null);
   const [firstImgMap, setFirstImgMap] = useState<{ [key: number]: string }>({});
   const [username, setUsername] = useState<string>("");
 
@@ -96,70 +99,37 @@ export default function WorkspacePage() {
     fetchUsername();
   }, []);
 
-  const handleCreateProject = async () => {
+  const handleSaveEdit = async (updatedProject: Project) => {
     try {
-      const response = await fetch(`${process.env.ORIGIN_URL}/create/project`, {
-        method: "POST",
+      const response = await fetch(`${process.env.ORIGIN_URL}/updateProject`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(newProject),
+        body: JSON.stringify(updatedProject),
         credentials: "include",
       });
 
       if (response.ok) {
-        const createdProject = await response.json();
-        setProjects([...projects, createdProject]);
-        setNewProject({ project_name: "", description: "" });
-        setIsModalOpen(false); 
+        const updated = await response.json();
+        setProjects(
+          projects.map((p) => (p.idproject === updated.idproject ? updated : p))
+        );
+        setNotification({
+          message: "Project updated successfully!",
+          type: "success",
+        });
+        setIsEditModalOpen(false);
         fetchProjects();
       } else {
-        console.error("Failed to create project");
+        throw new Error("Failed to update project");
       }
     } catch (error) {
-      console.error("An error occurred while creating the project:", error);
-    }
-  };
-
-  const handleEditProject = (id: number) => {
-    const project = projects.find((p) => p.idproject === id) || null;
-    setEditProject(project);
-    setIsEditModalOpen(true);
-  };
-
-  const handleSaveEdit = async () => {
-    if (editProject) {
-      try {
-        const response = await fetch(`${process.env.ORIGIN_URL}/updateProject`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            idproject: editProject.idproject,
-            project_name: editProject.project_name,
-            description: editProject.description,
-          }),
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          const updatedProject = await response.json();
-          setProjects(
-            projects.map((p) =>
-              p.idproject === updatedProject.idproject ? updatedProject : p
-            )
-          );
-          setNotification({ message: "Project updated successfully!", type: 'success' });
-          setIsEditModalOpen(false);
-          fetchProjects();
-        } else {
-          throw new Error("Failed to update project");
-        }
-      } catch (error) {
-        setNotification({ message: "Error updating project. Please try again.", type: 'error' });
-        console.error("An error occurred while updating the project:", error);
-      }
+      setNotification({
+        message: "Error updating project. Please try again.",
+        type: "error",
+      });
+      console.error("An error occurred while updating the project:", error);
     }
   };
 
@@ -185,6 +155,26 @@ export default function WorkspacePage() {
     }
   };
 
+  const handleEditProject = (id: number) => {
+    const projectToEdit = projects.find((project) => project.idproject === id);
+    if (projectToEdit) {
+      setEditProject(projectToEdit);
+      setIsEditModalOpen(true);
+    }
+  };
+
+  const handleOpenAddCollaborator = (id: number) => {
+    setIsAddCollaboratorOpen(id);
+  };
+
+  const handleCloseAddCollaborator = () => {
+    setIsAddCollaboratorOpen(null);
+  };
+
+  const handleCollaboratorAdded = () => {
+    fetchProjects();
+  };
+
   if (loading) {
     return <div className="text-white">Loading...</div>;
   }
@@ -195,7 +185,7 @@ export default function WorkspacePage() {
 
   return (
     <main className="bg-gradient-to-r from-gray-800 via-gray-900 to-black min-h-screen flex flex-col items-center text-white">
-      <Navbar/>
+      <Navbar />
       <section className="p-6 w-full max-w-4xl mx-auto mt-20">
         <h1 className="text-3xl font-bold mb-4">
           Welcome to Workspace, {username}!
@@ -236,18 +226,25 @@ export default function WorkspacePage() {
                     </div>
                   </div>
                 </Link>
-                <div>
+                <div className="space-x-3 flex">
                   <button
                     onClick={() => handleEditProject(project.idproject)}
-                    className="bg-teal-500 text-white py-1 px-3 rounded-lg hover:bg-teal-700 transition-all mr-2"
+                    className="bg-teal-500 text-white rounded-lg hover:bg-teal-700 transition-all p-3"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDeleteProject(project.idproject)}
-                    className="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-700 transition-all"
+                    className="bg-red-500 text-white rounded-lg hover:bg-red-700 transition-all p-3"
                   >
                     Delete
+                  </button>
+                  <button
+                    onClick={() => handleOpenAddCollaborator(project.idproject)}
+                    className='flex items-center bg-teal-500 text-white rounded-lg hover:bg-teal-700 transition-all p-3'
+                  >
+                    <IoMdPeople className='w-5 h-5 mr-2' /> {/* Adjust icon size */}
+                    Add Collaborator
                   </button>
                 </div>
               </li>
@@ -255,83 +252,29 @@ export default function WorkspacePage() {
           </ul>
         )}
 
-        {isModalOpen && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-gray-900 p-6 rounded-lg shadow-lg w-1/3">
-              <h2 className="text-xl font-bold mb-4">Create New Project</h2>
-              <input
-                type="text"
-                placeholder="Project Name"
-                value={newProject.project_name}
-                onChange={(e) =>
-                  setNewProject({ ...newProject, project_name: e.target.value })
-                }
-                className="w-full p-2 mb-4 bg-gray-800 border border-gray-600 rounded-lg"
-              />
-              <textarea
-                placeholder="Project Description"
-                value={newProject.description}
-                onChange={(e) =>
-                  setNewProject({ ...newProject, description: e.target.value })
-                }
-                className="w-full p-2 mb-4 bg-gray-800 border border-gray-600 rounded-lg"
-              />
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 mr-2"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateProject}
-                  className="bg-teal-500 text-white py-2 px-4 rounded-lg hover:bg-teal-700"
-                >
-                  Create
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <CreateProject
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onCreate={() => fetchProjects()}
+        />
 
         {isEditModalOpen && editProject && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-gray-900 p-6 rounded-lg shadow-lg w-1/3">
-              <h2 className="text-xl font-bold mb-4">Edit Project</h2>
-              <input
-                type="text"
-                placeholder="Project Name"
-                value={editProject.project_name}
-                onChange={(e) =>
-                  setEditProject({ ...editProject, project_name: e.target.value })
-                }
-                className="w-full p-2 mb-4 bg-gray-800 border border-gray-600 rounded-lg"
-              />
-              <textarea
-                placeholder="Project Description"
-                value={editProject.description}
-                onChange={(e) =>
-                  setEditProject({ ...editProject, description: e.target.value })
-                }
-                className="w-full p-2 mb-4 bg-gray-800 border border-gray-600 rounded-lg"
-              />
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 mr-2"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveEdit}
-                  className="bg-teal-500 text-white py-2 px-4 rounded-lg hover:bg-teal-700"
-                >
-                  Save
-                </button>
-              </div>
-            </div>
-          </div>
+          <EditProject
+            project={editProject}
+            onSave={handleSaveEdit}
+            onCancel={() => setIsEditModalOpen(false)}
+          />
         )}
+
+        {isAddCollaboratorOpen !== null && (
+          <AddCollaborator
+            projectId={isAddCollaboratorOpen}
+            onClose={handleCloseAddCollaborator}
+            onCollaboratorAdded={handleCollaboratorAdded}
+          />
+        )}
+
+        <SharedProjects username={username} /> {/* Add SharedProjects component here */}
       </section>
     </main>
   );

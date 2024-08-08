@@ -122,7 +122,7 @@ const Class = () => {
           </button>
         </div>
         {/* Render the fetched classes */}
-        <div className="text-white pb-3">There are {typedata.length} classes.</div>
+        <div className="text-white pb-3">There are {typedata.length} classes, You can change The class name by click at there name.</div>
         {typedata.map((type, index) => (
           <div
             key={type.class_id}

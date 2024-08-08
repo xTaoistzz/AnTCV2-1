@@ -1,5 +1,3 @@
-// components/RenameClass.tsx
-
 import React, { useState } from "react";
 
 interface RenameClassProps {
@@ -12,7 +10,7 @@ const RenameClass: React.FC<RenameClassProps> = ({ currentLabel, onSave, onCance
   const [newClassLabel, setNewClassLabel] = useState<string>(currentLabel);
 
   const handleSave = () => {
-    onSave(newClassLabel);
+    onSave(newClassLabel); // ตรวจสอบว่า newClassLabel ถูกส่งไปอย่างถูกต้องที่นี่
   };
 
   return (

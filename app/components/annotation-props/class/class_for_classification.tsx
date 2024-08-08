@@ -17,10 +17,12 @@ const Class = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [type, setType] = useState<string | null>(null);
   const [dropzoneVisible, setDropzoneVisible] = useState<string | null>(null);
-  const [galleryVisible, setGalleryVisible] = useState<{ [key: string]: boolean }>({});
+  const [galleryVisible, setGalleryVisible] = useState<{
+    [key: string]: boolean;
+  }>({});
   const [imageData, setImageData] = useState<{ [key: string]: string[] }>({});
   const [currentPage, setCurrentPage] = useState<{ [key: string]: number }>({});
-  const [imagesPerPage] = useState(20); // Number of images per page
+  const [imagesPerPage] = useState(18); // Number of images per page
   const [renameClassIndex, setRenameClassIndex] = useState<string | null>(null);
   const [newClassLabel, setNewClassLabel] = useState<string>("");
   const params = useParams<{ id: string }>();
@@ -84,7 +86,9 @@ const Class = () => {
 
       if (response.ok) {
         // Remove the deleted class from the state
-        setTypedata((prev) => prev.filter((cls) => cls.class_index !== classIndex));
+        setTypedata((prev) =>
+          prev.filter((cls) => cls.class_index !== classIndex)
+        );
         setImageData((prev) => {
           const updated = { ...prev };
           delete updated[classIndex];
@@ -105,6 +109,11 @@ const Class = () => {
 
   const handleRenameClass = async (classIndex: string) => {
     try {
+      if (newClassLabel.trim() === "") {
+        console.error("Class name cannot be empty");
+        return;
+      }
+
       const response = await fetch(
         `${process.env.ORIGIN_URL}/classification/updateClass`,
         {
@@ -251,14 +260,18 @@ const Class = () => {
                   onClick={() => toggleGallery(type.class_index)}
                   className="border border-gray-600 bg-purple-600 text-white hover:bg-purple-800 transition-colors duration-300 font-normal rounded-lg p-2"
                 >
-                  {galleryVisible[type.class_index] ? "Hide Gallery" : "Show Gallery"}
+                  {galleryVisible[type.class_index]
+                    ? `Hide Gallery (${
+                        imageData[type.class_index]?.length || 0
+                      } images)`
+                    : `Show Gallery (${
+                        imageData[type.class_index]?.length || 0
+                      } images)`}
                 </button>
               </div>
             </div>
             {dropzoneVisible === type.class_index && (
-              <Dropzone
-                class_index={type.class_index}
-              />
+              <Dropzone class_index={type.class_index} />
             )}
             {galleryVisible[type.class_index] && (
               <Gallery
