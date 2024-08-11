@@ -1,5 +1,5 @@
 "use client";
-
+import { FaEdit, FaCloudUploadAlt, FaImages } from "react-icons/fa";
 import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useParams, useRouter } from "next/navigation";
@@ -75,7 +75,8 @@ const Dropzone = () => {
         className="border-4 border-dashed border-gray-600 p-6 rounded-lg cursor-pointer flex flex-col items-center justify-center mb-4"
       >
         <input {...getInputProps()} />
-        <p className="text-white">
+        <p className="flex flex-col text-white items-center justify-center content-center text-center">
+          <FaCloudUploadAlt className="w-10 h-10"/>
           Drag 'n' drop some files here, or click to select files
         </p>
       </div>

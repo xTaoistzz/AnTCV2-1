@@ -1,5 +1,5 @@
 "use client";
-
+import { ImBin } from "react-icons/im";
 import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import CreateClass from "@/app/components/annotation-props/class/CreateClass";
@@ -150,7 +150,7 @@ const Class = () => {
               onClick={() => handleDelete(type.class_id)}
               className="border border-red-600 bg-red-800 text-white hover:bg-red-600 transition-colors duration-300 hover:text-gray-800 font-normal rounded-lg p-2"
             >
-              Delete
+              <ImBin className="w-5 h-5" />
             </button>
           </div>
         ))}

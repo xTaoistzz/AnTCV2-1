@@ -1,5 +1,6 @@
 "use client";
-
+import { ImBin } from "react-icons/im";
+import { FaEdit, FaCloudUploadAlt, FaImages } from "react-icons/fa";
 import React, { useState, useCallback, useEffect } from "react";
 import { useParams } from "next/navigation";
 import CreateClass from "@/app/components/annotation-props/class/CreateClass";
@@ -16,13 +17,11 @@ const Class = () => {
   const [typedata, setTypedata] = useState<Label[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [type, setType] = useState<string | null>(null);
-  const [dropzoneVisible, setDropzoneVisible] = useState<string | null>(null);
-  const [galleryVisible, setGalleryVisible] = useState<{
-    [key: string]: boolean;
-  }>({});
+  const [visibleDropzone, setVisibleDropzone] = useState<string | null>(null);
+  const [visibleGallery, setVisibleGallery] = useState<string | null>(null);
   const [imageData, setImageData] = useState<{ [key: string]: string[] }>({});
   const [currentPage, setCurrentPage] = useState<{ [key: string]: number }>({});
-  const [imagesPerPage] = useState(18); // Number of images per page
+  const [imagesPerPage] = useState(18);
   const [renameClassIndex, setRenameClassIndex] = useState<string | null>(null);
   const [newClassLabel, setNewClassLabel] = useState<string>("");
   const params = useParams<{ id: string }>();
@@ -59,7 +58,7 @@ const Class = () => {
         );
         const data = await res.json();
         setImageData((prev) => ({ ...prev, [classIndex]: data.imgAll }));
-        setCurrentPage((prev) => ({ ...prev, [classIndex]: 1 })); // Reset to first page
+        setCurrentPage((prev) => ({ ...prev, [classIndex]: 1 }));
       } catch (error) {
         console.error("Error fetching images:", error);
       }
@@ -85,7 +84,6 @@ const Class = () => {
       );
 
       if (response.ok) {
-        // Remove the deleted class from the state
         setTypedata((prev) =>
           prev.filter((cls) => cls.class_index !== classIndex)
         );
@@ -173,14 +171,11 @@ const Class = () => {
   };
 
   const toggleDropzone = (class_index: string) => {
-    setDropzoneVisible(dropzoneVisible === class_index ? null : class_index);
+    setVisibleDropzone(visibleDropzone === class_index ? null : class_index);
   };
 
   const toggleGallery = (class_index: string) => {
-    setGalleryVisible((prev) => ({
-      ...prev,
-      [class_index]: !prev[class_index],
-    }));
+    setVisibleGallery(visibleGallery === class_index ? null : class_index);
   };
 
   const handlePageChange = (class_index: string, pageNumber: number) => {
@@ -204,7 +199,6 @@ const Class = () => {
             Create Class
           </button>
         </div>
-        {/* Render the fetched classes */}
         {typedata.map((type) => (
           <div
             key={type.class_index}
@@ -234,13 +228,7 @@ const Class = () => {
                 </div>
               </div>
               <div className="flex space-x-2">
-                <button
-                  onClick={() => handleDeleteClass(type.class_index)}
-                  className="border border-gray-600 bg-red-600 text-white hover:bg-red-800 transition-colors duration-300 font-normal rounded-lg p-2"
-                >
-                  Delete
-                </button>
-                <button
+              <button
                   onClick={() =>
                     renameClassIndex === type.class_index
                       ? setRenameClassIndex(null)
@@ -248,32 +236,36 @@ const Class = () => {
                   }
                   className="border border-gray-600 bg-blue-600 text-white hover:bg-blue-800 transition-colors duration-300 font-normal rounded-lg p-2"
                 >
-                  Rename
+                  <FaEdit className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => toggleDropzone(type.class_index)}
                   className="border border-gray-600 bg-green-600 text-white hover:bg-green-800 transition-colors duration-300 font-normal rounded-lg p-2"
                 >
-                  Upload
+                  <FaCloudUploadAlt className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => toggleGallery(type.class_index)}
-                  className="border border-gray-600 bg-purple-600 text-white hover:bg-purple-800 transition-colors duration-300 font-normal rounded-lg p-2"
+                  className="flex border border-gray-600 bg-purple-600 text-white hover:bg-purple-800 transition-colors duration-300 font-normal rounded-lg p-2"
                 >
-                  {galleryVisible[type.class_index]
-                    ? `Hide Gallery (${
-                        imageData[type.class_index]?.length || 0
-                      } images)`
-                    : `Show Gallery (${
-                        imageData[type.class_index]?.length || 0
-                      } images)`}
+                  <FaImages className="w-5 h-5" />
+                  <span className="ml-3">
+                    ({imageData[type.class_index]?.length || 0} images)
+                  </span>
                 </button>
+                <button
+                  onClick={() => handleDeleteClass(type.class_index)}
+                  className="border border-gray-600 bg-red-600 text-white hover:bg-red-800 transition-colors duration-300 font-normal rounded-lg p-2"
+                >
+                  <ImBin className="w-5 h-5" />
+                </button>
+               
               </div>
             </div>
-            {dropzoneVisible === type.class_index && (
+            {visibleDropzone === type.class_index && (
               <Dropzone class_index={type.class_index} />
             )}
-            {galleryVisible[type.class_index] && (
+            {visibleGallery === type.class_index && (
               <Gallery
                 images={getPaginatedImages(type.class_index)}
                 classIndex={type.class_index}

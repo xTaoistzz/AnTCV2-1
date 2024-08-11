@@ -1,6 +1,7 @@
-// Updated WorkspacePage component
+// Updated WorkspacePage component with two projects per row
 "use client";
-
+import { ImBin } from "react-icons/im";
+import { FaEdit, FaCloudUploadAlt, FaImages } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { HiMiniPhoto } from "react-icons/hi2";
@@ -8,7 +9,7 @@ import Navbar from "../components/navigation/Navbar";
 import CreateProject from "../components/workspace_props/create";
 import EditProject from "../components/workspace_props/edit";
 import AddCollaborator from "../components/workspace_props/share";
-import SharedProjects from "../components/workspace_props/shareproject";// Import the new component
+import SharedProjects from "../components/workspace_props/shareproject";
 import { IoMdPeople } from "react-icons/io";
 
 interface Project {
@@ -22,7 +23,7 @@ export default function WorkspacePage() {
   const [editProject, setEditProject] = useState<Project | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
-  const [isAddCollaboratorOpen, setIsAddCollaboratorOpen] = useState<number | null>(null); // State to manage AddCollaborator modal
+  const [isAddCollaboratorOpen, setIsAddCollaboratorOpen] = useState<number | null>(null); 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{
@@ -186,7 +187,7 @@ export default function WorkspacePage() {
   return (
     <main className="bg-gradient-to-r from-gray-800 via-gray-900 to-black min-h-screen flex flex-col items-center text-white">
       <Navbar />
-      <section className="p-6 w-full max-w-4xl mx-auto mt-20">
+      <section className="p-6 w-full max-w-6xl mx-auto mt-20">
         <h1 className="text-3xl font-bold mb-4">
           Welcome to Workspace, {username}!
         </h1>
@@ -201,9 +202,9 @@ export default function WorkspacePage() {
         {projects.length === 0 ? (
           <p className="text-gray-400">No projects available.</p>
         ) : (
-          <ul>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {projects.map((project) => (
-              <li
+              <div
                 key={project.idproject}
                 className="border border-gray-300 rounded mb-4 p-4 flex items-center bg-gray-800 justify-between"
               >
@@ -231,25 +232,24 @@ export default function WorkspacePage() {
                     onClick={() => handleEditProject(project.idproject)}
                     className="bg-teal-500 text-white rounded-lg hover:bg-teal-700 transition-all p-3"
                   >
-                    Edit
+                    <FaEdit className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => handleDeleteProject(project.idproject)}
                     className="bg-red-500 text-white rounded-lg hover:bg-red-700 transition-all p-3"
                   >
-                    Delete
+                    <ImBin className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => handleOpenAddCollaborator(project.idproject)}
                     className='flex items-center bg-teal-500 text-white rounded-lg hover:bg-teal-700 transition-all p-3'
                   >
-                    <IoMdPeople className='w-5 h-5 mr-2' /> {/* Adjust icon size */}
-                    Add Collaborator
+                    <IoMdPeople className='w-5 h-5' /> {/* Adjust icon size */}
                   </button>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
 
         <CreateProject
@@ -274,7 +274,7 @@ export default function WorkspacePage() {
           />
         )}
 
-        <SharedProjects username={username} /> {/* Add SharedProjects component here */}
+        <SharedProjects username={username} />
       </section>
     </main>
   );
