@@ -162,7 +162,7 @@ function ImageWithPolygon({ idproject, idsegmentation, imageUrl }) {
   };
 
   return (
-    <div className="flex flex-col items-center p-4">
+    <div className="flex flex-col items-center">
             <div className="text-gray-500">
         Draw some Polygon on images to add Label.
       </div>

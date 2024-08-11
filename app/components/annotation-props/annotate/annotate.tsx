@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
+import { ImBin } from "react-icons/im";
 
 interface ImageData {
   image_path: string;
@@ -14,12 +15,8 @@ const IMAGE_PER_PAGE = 12;
 export default function Annotate() {
   const params = useParams<{ id: string }>();
   const idproject = params.id;
-  const Detection = dynamic(() => import("./detection"), {
-    ssr: false,
-  });
-  const Segmentation = dynamic(() => import("./segmentation"), {
-    ssr: false,
-  });
+  const Detection = dynamic(() => import("./detection"), { ssr: false });
+  const Segmentation = dynamic(() => import("./segmentation"), { ssr: false });
 
   const [allUrl, setUrl] = useState<string[]>([]);
   const [activeUrl, setActiveUrl] = useState<string | null>(null);
@@ -63,7 +60,7 @@ export default function Annotate() {
 
   useEffect(() => {
     if (allUrl.length > 0) {
-      setActiveUrl(allUrl[0]); // Set activeUrl to the first image in allUrl
+      setActiveUrl(allUrl[0]);
     }
   }, [allUrl]);
 
@@ -86,6 +83,18 @@ export default function Annotate() {
     }
   };
 
+  const handleNextImage = () => {
+    const currentIndex = allUrl.indexOf(activeUrl!);
+    const nextIndex = (currentIndex + 1) % allUrl.length;
+    send_id_compared(allUrl[nextIndex]);
+  };
+
+  const handlePreviousImage = () => {
+    const currentIndex = allUrl.indexOf(activeUrl!);
+    const prevIndex = (currentIndex - 1 + allUrl.length) % allUrl.length;
+    send_id_compared(allUrl[prevIndex]);
+  };
+
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
@@ -102,6 +111,48 @@ export default function Annotate() {
     setGalleryOpen(!isGalleryOpen);
   };
 
+  const handleDeleteImage = async (imgName: string, index: number) => {
+    try {
+      const res = await fetch(`${process.env.ORIGIN_URL}/delete/image`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          idproject,
+          imgName,
+          type,
+          index,
+        }),
+      });
+
+      if (res.ok) {
+        // Update the state to remove the deleted image from the gallery
+        const newUrls = allUrl.filter((url) => !url.includes(imgName));
+        setUrl(newUrls);
+
+        // Update activeUrl if necessary
+        if (activeUrl?.includes(imgName)) {
+          setActiveUrl(newUrls.length > 0 ? newUrls[0] : null);
+        }
+
+        // Update idDetection or idSegmentation if necessary
+        if (type === "detection") {
+          setAllData(allData.filter((img) => img.image_path !== imgName));
+          setIdDetection(newUrls.length > 0 ? allData[0].iddetection : null);
+        } else if (type === "segmentation") {
+          setAllData(allData.filter((img) => img.image_path !== imgName));
+          setIdSegmentation(newUrls.length > 0 ? allData[0].idsegmentation : null);
+        }
+      } else {
+        console.error("Failed to delete the image");
+      }
+    } catch (error) {
+      console.error("Error deleting image:", error);
+    }
+  };
+
   return (
     <div className="p-5">
       {!activeUrl && (
@@ -109,8 +160,27 @@ export default function Annotate() {
           You don't have images for Annotations, Please upload your images to use this feature
         </div>
       )}
+      {activeUrl && (
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={handlePreviousImage}
+            className="bg-blue-500 text-white px-4 py-2 rounded-md focus:outline-none"
+          >
+            &lt;
+          </button>
+          <span className="mx-4 text-gray-700 font-medium">
+            {activeUrl.split("/").pop()}
+          </span>
+          <button
+            onClick={handleNextImage}
+            className="bg-blue-500 text-white px-4 py-2 rounded-md focus:outline-none"
+          >
+            &gt;
+          </button>
+        </div>
+      )}
       <div
-        className={`overflow-y-auto max-h-[calc(100vh-220px)]`} // Subtracts approximate height of the gallery + some padding
+        className={`overflow-y-auto max-h-[calc(100vh-220px)]`}
       >
         {type === "detection" && activeUrl && idDetection && (
           <Detection
@@ -172,32 +242,23 @@ export default function Annotate() {
             isGalleryOpen ? "opacity-100" : "opacity-100"
           }`}
         >
-          {displayImages.length > 0 ? (
-            displayImages.map((url, index) => (
-              <div
-                key={index}
-                className={`relative mx-2 cursor-pointer`}
+          {displayImages.map((url, index) => (
+            <div key={index} className="relative mx-2">
+              <img
+                src={url}
+                className={`cursor-pointer h-24 w-24 rounded-md shadow-md ${
+                  url === activeUrl ? "ring-2 ring-blue-500" : ""
+                }`}
                 onClick={() => send_id_compared(url)}
+              />
+              <button
+                onClick={() => handleDeleteImage(url.split("/").pop() || "", index)}
+                className="absolute bottom-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-700 focus:outline-none"
               >
-                <img
-                  src={url}
-                  alt={`Image ${index}`}
-                  width={120}
-                  height={120}
-                  className={`rounded-lg shadow-lg h-auto object-cover border-2 ${
-                    activeUrl === url ? "border-yellow-400" : "border-transparent"
-                  }`}
-                />
-              </div>
-            ))
-          ) : (
-            <div className="text-gray-500 mx-auto mt-4">
-              You haven't selected any image. Please select an image to annotate.
+               <ImBin />
+              </button>
             </div>
-          )}
-        </div>
-        <div className="flex justify-center mt-2 text-gray-500">
-          Total Images: {allUrl.length}
+          ))}
         </div>
       </div>
     </div>

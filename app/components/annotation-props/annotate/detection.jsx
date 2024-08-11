@@ -202,7 +202,7 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
   };
 
   return (
-    <div className="flex flex-col items-center p-4">
+    <div className="flex flex-col items-center">
       <div className="text-gray-500 mb-4">
         Draw some Bounding Box on images to add Label.
       </div>
