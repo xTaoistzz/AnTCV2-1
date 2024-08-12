@@ -22,6 +22,9 @@ const Gallery: React.FC<GalleryProps> = ({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-6 gap-4">
+        {
+            images.length == 0 && <div className="text-white">No Image Available</div>
+        }
         {images.map((image, index) => (
           <div key={image} className="flex flex-col items-center">
             <span className="text-white mt-2">{index + 1 + ((currentPage - 1) * imagesPerPage)} : {image}</span>
@@ -30,7 +33,9 @@ const Gallery: React.FC<GalleryProps> = ({
               alt={image}
               className="w-36 h-36 object-cover rounded-lg"
             />
-            
+            {
+
+            }
           </div>
         ))}
       </div>

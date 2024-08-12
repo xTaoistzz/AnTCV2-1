@@ -251,6 +251,7 @@ const Class = () => {
                   <FaImages className="w-5 h-5" />
                   <span className="ml-3">
                     ({imageData[type.class_index]?.length || 0} images)
+
                   </span>
                 </button>
                 <button
