@@ -46,7 +46,7 @@ const Dropzone: React.FC<DropzoneProps> = ({ class_index }) => {
       const data = await response.json();
       console.log("File uploaded successfully:", data);
       setNotification({ message: "Files uploaded successfully!", type: 'success' });
-      router.refresh(); // Refresh the page after successful upload
+      window.location.reload() // Refresh the page after successful upload
     } catch (error) {
       console.error("Error uploading file:", error);
       setNotification({ message: "Error uploading files. Please try again.", type: 'error' });

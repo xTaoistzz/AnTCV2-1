@@ -50,14 +50,29 @@ export default function SignIn() {
         body: JSON.stringify({ username, password }),
       });
 
-      if (response.ok) {
-        setErrorMessage(""); // Clear the error message on successful login
-        setIsModalVisible(true);
-        setTimeout(() => {
-          router.push("/workspace");
-        }, 2000); // Redirect after 2 seconds
+      const data = await response.json();
+
+      if (response) {
+        if (data.type === "verify") {
+          // Send a request to `/sendnewcode` before redirecting
+          await fetch(`${process.env.ORIGIN_URL}/sendnewcode`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+
+          // Redirect to the verification page after sending the new code
+          router.push("/sign-up/verify");
+        } else {
+          setErrorMessage(""); // Clear the error message on successful login
+          setIsModalVisible(true);
+          setTimeout(() => {
+            router.push("/workspace");
+          }, 2000); // Redirect after 2 seconds
+        }
       } else {
-        const data = await response.json();
         setErrorMessage(data.message || "Login failed");
       }
     } catch (error) {
