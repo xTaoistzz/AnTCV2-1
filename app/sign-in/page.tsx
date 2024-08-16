@@ -3,7 +3,8 @@
 import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import GuestNav from "../components/navigation/GuestNav";
+import Image from "next/image";
 export default function SignIn() {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [errorMessage, setErrorMessage] = useState("");
@@ -13,9 +14,12 @@ export default function SignIn() {
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        const response = await fetch(`${process.env.ORIGIN_URL}/returnUsername`, {
-          credentials: "include",
-        });
+        const response = await fetch(
+          `${process.env.ORIGIN_URL}/returnUsername`,
+          {
+            credentials: "include",
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();
@@ -53,6 +57,15 @@ export default function SignIn() {
       const data = await response.json();
 
       if (response) {
+        if (response.ok) {
+          setErrorMessage(""); // Clear the error message on successful login
+          setIsModalVisible(true);
+          setTimeout(() => {
+            router.push("/workspace");
+          }, 2000); // Redirect after 2 seconds
+        } else {
+          setErrorMessage(data.message || "Login failed");
+        }
         if (data.type === "verify") {
           // Send a request to `/sendnewcode` before redirecting
           await fetch(`${process.env.ORIGIN_URL}/sendnewcode`, {
@@ -65,15 +78,7 @@ export default function SignIn() {
 
           // Redirect to the verification page after sending the new code
           router.push("/sign-up/verify");
-        } else {
-          setErrorMessage(""); // Clear the error message on successful login
-          setIsModalVisible(true);
-          setTimeout(() => {
-            router.push("/workspace");
-          }, 2000); // Redirect after 2 seconds
         }
-      } else {
-        setErrorMessage(data.message || "Login failed");
       }
     } catch (error) {
       setErrorMessage("An error occurred. Please try again later.");
@@ -82,26 +87,34 @@ export default function SignIn() {
   };
 
   return (
-    <main className="bg-gradient-to-r from-blue-50 via-gray-100 to-gray-50 min-h-screen flex flex-col items-center justify-center text-gray-900">
-      <nav className="bg-white p-3 flex rounded-lg text-center items-center justify-between fixed top-4 left-0 right-0 mx-4 shadow-lg border border-gray-300">
-        <div className="text-blue-600 font-bold text-xl">AnTCV</div>
-        <div>
-          <Link href="/">
-            <button className="text-white bg-blue-500 p-2 rounded-lg hover:bg-blue-600 transition-all">
-              Home
-            </button>
-          </Link>
-        </div>
-      </nav>
-      <section className="flex flex-col items-center justify-center flex-grow w-full px-4">
-        <h1 className="text-4xl font-bold mb-8 animate-pulse-soft">Sign In to AnTCV</h1>
-        <form className="bg-white p-8 rounded-lg shadow-lg border border-gray-300 max-w-md w-full" onSubmit={handleSubmit}>
+    <main className="flex flex-col bg-gradient-to-t from-teal-300 via-blue-300 to-blue-600 min-h-screen">
+      <GuestNav />
+      <section className="flex flex-col pt-20  items-center font-light"> 
+        <h1 className="text-2xl font-bold mb-4 animate-pulse-soft text-white drop-shadow-lg">
+          <div className="flex justify-center mb-4 drop-shadow-lg">
+            <Image
+              src="/LOGO.png"
+              alt="AnTCV Logo"
+              width={100} // Adjust the width as needed
+              height={100} // Adjust the height as needed
+              className=""
+            />
+          </div>
+          Sign In to AnTCV
+        </h1>
+        <form
+          className="bg-white p-10 rounded-lg shadow-lg max-w-md w-full bg-opacity-30"
+          onSubmit={handleSubmit}
+        >
           <div className="mb-4">
-            <label className="block text-blue-600 text-sm font-bold mb-2" htmlFor="username">
+            <label
+              className="block text-blue-600 text-sm font-bold mb-2"
+              htmlFor="username"
+            >
               Username
             </label>
             <input
-              className="w-full p-3 rounded-lg bg-gray-50 text-gray-800 border border-gray-300 focus:outline-none focus:border-blue-500"
+              className="bg-opacity-70 w-full p-1 rounded-lg bg-gray-50 text-gray-800 border border-gray-300 focus:outline-none focus:border-blue-500"
               type="text"
               id="username"
               name="username"
@@ -111,11 +124,14 @@ export default function SignIn() {
             />
           </div>
           <div className="mb-6">
-            <label className="block text-blue-600 text-sm font-bold mb-2" htmlFor="password">
+            <label
+              className="block text-blue-600 text-sm font-bold mb-2"
+              htmlFor="password"
+            >
               Password
             </label>
             <input
-              className="w-full p-3 rounded-lg bg-gray-50 text-gray-800 border border-gray-300 focus:outline-none focus:border-blue-500"
+              className="bg-opacity-70 w-full p-1 rounded-lg bg-gray-50 text-gray-800 border border-gray-300 focus:outline-none focus:border-blue-500"
               type="password"
               id="password"
               name="password"
@@ -123,14 +139,18 @@ export default function SignIn() {
               value={formData.password}
               onChange={handleChange}
             />
-            {errorMessage && <p className="text-red-500 text-xs italic mt-2">{errorMessage}</p>}
+            {errorMessage && (
+              <p className="text-red-500 text-xs italic mt-2">{errorMessage}</p>
+            )}
           </div>
           <div className="flex items-center justify-between">
-            <button className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-all">
+            <button className="bg-blue-500 text-white p-2 px-4 rounded-lg hover:bg-blue-700 transition-all">
               Sign In
             </button>
             <Link href="/sign-in/forgot">
-              <div className="text-blue-600 hover:text-blue-800 text-sm">Forgot Password?</div>
+              <div className="text-blue-600 hover:text-blue-800 text-sm">
+                Forgot Password?
+              </div>
             </Link>
           </div>
           <div className="flex items-center justify-center mt-4">
@@ -142,31 +162,19 @@ export default function SignIn() {
           </div>
         </form>
       </section>
-      <footer className="bg-gray-100 py-4 w-full text-center text-gray-600 border-t border-gray-300">
+      <footer className="bottom-0 fixed w-full py-2 text-center border-t font-light bg-white">
         © 2024 AnTCV. All rights reserved.
       </footer>
       {isModalVisible && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white rounded-lg p-6 space-y-4 shadow-lg text-center">
-            <h2 className="text-xl font-semibold text-blue-600">Login Successful!</h2>
+            <h2 className="text-xl font-semibold text-blue-600">
+              Login Successful!
+            </h2>
             <p className="text-gray-700">You will be redirected shortly...</p>
           </div>
         </div>
       )}
-      <style jsx>{`
-        @keyframes pulseSoft {
-          0%, 100% {
-            text-shadow: 0 0 5px rgba(0, 119, 182, 0.5);
-          }
-          50% {
-            text-shadow: 0 0 10px rgba(0, 119, 182, 0.7);
-          }
-        }
-
-        .animate-pulse-soft {
-          animation: pulseSoft 3s infinite;
-        }
-      `}</style>
     </main>
   );
 }
