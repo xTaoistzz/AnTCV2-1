@@ -3,6 +3,9 @@
 import { useState, ChangeEvent, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import GuestNav from "../components/navigation/GuestNav";
+import Image from "next/image";
+import { motion } from "framer-motion";
 import Modal from "@/app/components/Modal"; // Adjust the path as needed
 
 export default function SignUp() {
@@ -37,13 +40,12 @@ export default function SignUp() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
-        credentials : 'include'
+        credentials: 'include'
       });
 
       if (response.ok) {
-        // Handle successful registration
-        setErrorMessage(""); // Clear the error message on successful registration
-        setIsModalOpen(true); // Open the modal
+        setErrorMessage("");
+        setIsModalOpen(true);
       } else {
         const data = await response.json();
         setErrorMessage(data.message || "Registration failed");
@@ -56,7 +58,7 @@ export default function SignUp() {
 
   const handleConfirm = () => {
     setIsModalOpen(false);
-    router.push("/sign-up/verify"); // Redirect to verification page
+    router.push("/sign-up/verify");
   };
 
   const handleCancel = () => {
@@ -64,29 +66,39 @@ export default function SignUp() {
   };
 
   return (
-    <main className="bg-gradient-to-r from-gray-800 via-gray-900 to-black min-h-screen flex flex-col items-center justify-center text-white">
-      <nav className="bg-white bg-opacity-10 p-3 flex rounded-lg text-center items-center justify-between fixed top-4 left-0 right-0 mx-4 drop-shadow-2xl border border-gray-700">
-        <div className="text-teal-300 font-bold text-xl">AnTCV</div>
-        <div>
-          <Link href="/">
-            <button className="text-white bg-teal-500 p-2 rounded-lg hover:bg-teal-700 transition-all">
-              Home
-            </button>
-          </Link>
-        </div>
-      </nav>
-      <section className="flex flex-col items-center justify-center flex-grow w-full px-4">
-        <h1 className="text-4xl font-bold mb-8 animate-pulse-glow">Sign Up for AnTCV</h1>
-        <form
-          className="bg-white bg-opacity-10 p-8 rounded-lg drop-shadow-2xl border border-gray-700 max-w-md w-full"
+    <main className="flex flex-col bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 min-h-screen">
+      <GuestNav />
+      <section className="flex flex-col pt-32 items-center">
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-8"
+        >
+          <Image
+            src="/LOGO.png"
+            alt="AnTCV Logo"
+            width={100}
+            height={100}
+            className="mx-auto mb-4"
+          />
+          <h1 className="text-3xl font-bold text-blue-800">
+            Sign Up for AnTCV
+          </h1>
+        </motion.div>
+        <motion.form
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full"
           onSubmit={handleSubmit}
         >
           <div className="mb-4">
-            <label className="block text-teal-300 text-sm font-bold mb-2" htmlFor="username">
+            <label className="block text-blue-700 text-sm font-semibold mb-2" htmlFor="username">
               Username
             </label>
             <input
-              className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-teal-500"
+              className="w-full p-3 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 focus:outline-none focus:border-blue-500 transition duration-300"
               type="text"
               id="username"
               name="username"
@@ -96,11 +108,11 @@ export default function SignUp() {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-teal-300 text-sm font-bold mb-2" htmlFor="email">
+            <label className="block text-blue-700 text-sm font-semibold mb-2" htmlFor="email">
               Email
             </label>
             <input
-              className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-teal-500"
+              className="w-full p-3 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 focus:outline-none focus:border-blue-500 transition duration-300"
               type="email"
               id="email"
               name="email"
@@ -109,12 +121,12 @@ export default function SignUp() {
               onChange={handleChange}
             />
           </div>
-          <div className="mb-6">
-            <label className="block text-teal-300 text-sm font-bold mb-2" htmlFor="password">
+          <div className="mb-4">
+            <label className="block text-blue-700 text-sm font-semibold mb-2" htmlFor="password">
               Password
             </label>
             <input
-              className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-teal-500"
+              className="w-full p-3 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 focus:outline-none focus:border-blue-500 transition duration-300"
               type="password"
               id="password"
               name="password"
@@ -124,11 +136,11 @@ export default function SignUp() {
             />
           </div>
           <div className="mb-6">
-            <label className="block text-teal-300 text-sm font-bold mb-2" htmlFor="conPassword">
+            <label className="block text-blue-700 text-sm font-semibold mb-2" htmlFor="conPassword">
               Confirm Password
             </label>
             <input
-              className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-teal-500"
+              className="w-full p-3 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 focus:outline-none focus:border-blue-500 transition duration-300"
               type="password"
               id="conPassword"
               name="conPassword"
@@ -136,19 +148,25 @@ export default function SignUp() {
               value={formData.conPassword}
               onChange={handleChange}
             />
-            {errorMessage && <p className="text-red-500 text-xs italic mt-2">{errorMessage}</p>}
+            {errorMessage && <p className="text-red-500 text-sm mt-2">{errorMessage}</p>}
           </div>
-          <div className="flex items-center justify-between">
-            <button className="bg-teal-500 text-white py-2 px-4 rounded-lg hover:bg-teal-700 transition-all">
+          <div className="flex items-center justify-between mb-6">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-blue-600 text-white py-2 px-6 rounded-full font-semibold hover:bg-blue-700 transition duration-300 shadow-md"
+            >
               Sign Up
-            </button>
+            </motion.button>
             <Link href="/sign-in">
-              <div className="text-teal-300 hover:text-teal-500 text-sm">Already have an account? Sign In</div>
+              <span className="text-blue-600 hover:text-blue-800 text-sm font-medium transition duration-300">
+                Already have an account? Sign In
+              </span>
             </Link>
           </div>
-        </form>
+        </motion.form>
       </section>
-      <footer className="bg-gray-900 bg-opacity-50 py-4 w-full text-center text-gray-400 border-t border-gray-700">
+      <footer className="mt-auto py-4 text-center text-blue-600 bg-white bg-opacity-90">
         © 2024 AnTCV. All rights reserved.
       </footer>
       <Modal
@@ -157,20 +175,6 @@ export default function SignUp() {
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />
-      <style jsx>{`
-        @keyframes pulseGlow {
-          0%, 100% {
-            text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc, 0 0 30px #00ffcc, 0 0 40px #00ffcc, 0 0 50px #00ffcc, 0 0 60px #00ffcc, 0 0 70px #00ffcc;
-          }
-          50% {
-            text-shadow: 0 0 20px #00ffcc, 0 0 30px #00ffcc, 0 0 40px #00ffcc, 0 0 50px #00ffcc, 0 0 60px #00ffcc, 0 0 70px #00ffcc, 0 0 80px #00ffcc;
-          }
-        }
-
-        .animate-pulse-glow {
-          animation: pulseGlow 2s infinite;
-        }
-      `}</style>
     </main>
   );
 }

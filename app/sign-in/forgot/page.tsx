@@ -2,6 +2,9 @@
 
 import { useState, ChangeEvent, FormEvent } from "react";
 import Link from "next/link";
+import GuestNav from "../../components/navigation/GuestNav";
+import Image from "next/image";
+import { motion } from "framer-motion";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -37,26 +40,39 @@ export default function ForgotPassword() {
   };
 
   return (
-    <main className="bg-gradient-to-r from-blue-50 via-gray-100 to-gray-50 min-h-screen flex flex-col items-center justify-center text-gray-900">
-      <nav className="bg-white p-3 flex rounded-lg text-center items-center justify-between fixed top-4 left-0 right-0 mx-4 shadow-lg border border-gray-300">
-        <div className="text-blue-600 font-bold text-xl">AnTCV</div>
-        <div>
-          <Link href="/">
-            <button className="text-white bg-blue-500 p-2 rounded-lg hover:bg-blue-600 transition-all">
-              Home
-            </button>
-          </Link>
-        </div>
-      </nav>
-      <section className="flex flex-col items-center justify-center flex-grow w-full px-4">
-        <h1 className="text-4xl font-bold mb-8 animate-pulse-soft">Forgot Password</h1>
-        <form className="bg-white p-8 rounded-lg shadow-lg border border-gray-300 max-w-md w-full" onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-blue-600 text-sm font-bold mb-2" htmlFor="email">
+    <main className="flex flex-col bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 min-h-screen">
+      <GuestNav />
+      <section className="flex flex-col pt-32 items-center">
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-8"
+        >
+          <Image
+            src="/LOGO.png"
+            alt="AnTCV Logo"
+            width={100}
+            height={100}
+            className="mx-auto mb-4"
+          />
+          <h1 className="text-3xl font-bold text-blue-800">
+            Forgot Password
+          </h1>
+        </motion.div>
+        <motion.form
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full"
+          onSubmit={handleSubmit}
+        >
+          <div className="mb-6">
+            <label className="block text-blue-700 text-sm font-semibold mb-2" htmlFor="email">
               Email
             </label>
             <input
-              className="w-full p-3 rounded-lg bg-gray-50 text-gray-800 border border-gray-300 focus:outline-none focus:border-blue-500"
+              className="w-full p-3 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 focus:outline-none focus:border-blue-500 transition duration-300"
               type="email"
               id="email"
               name="email"
@@ -65,31 +81,34 @@ export default function ForgotPassword() {
               onChange={handleChange}
             />
           </div>
-          <div className="flex items-center justify-between">
-            <button className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-all">
+          <div className="flex items-center justify-between mb-6">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-blue-600 text-white py-2 px-6 rounded-full font-semibold hover:bg-blue-700 transition duration-300 shadow-md"
+            >
               Send Reset Link
-            </button>
+            </motion.button>
+            <Link href="/sign-in">
+              <span className="text-blue-600 hover:text-blue-800 text-sm font-medium transition duration-300">
+                Back to Sign In
+              </span>
+            </Link>
           </div>
-          {message && <p className="text-blue-600 text-xs italic mt-4">{message}</p>}
-        </form>
+          {message && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-blue-600 text-sm mt-4 text-center"
+            >
+              {message}
+            </motion.p>
+          )}
+        </motion.form>
       </section>
-      <footer className="bg-gray-100 py-4 w-full text-center text-gray-600 border-t border-gray-300">
+      <footer className="mt-auto py-4 text-center text-blue-600 bg-white bg-opacity-90">
         © 2024 AnTCV. All rights reserved.
       </footer>
-      <style jsx>{`
-        @keyframes pulseSoft {
-          0%, 100% {
-            text-shadow: 0 0 5px rgba(0, 119, 182, 0.5);
-          }
-          50% {
-            text-shadow: 0 0 10px rgba(0, 119, 182, 0.7);
-          }
-        }
-
-        .animate-pulse-soft {
-          animation: pulseSoft 3s infinite;
-        }
-      `}</style>
     </main>
   );
 }

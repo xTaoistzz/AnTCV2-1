@@ -21,6 +21,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/components/annotation-props/annotate/boundingbox.tsx", "app/components/annotation-props/annotate/segmentation.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/components/annotation-props/annotate/boundingbox.tsx", "app/components/annotation-props/annotate/segmentation.jsx", "app/components/annotation-props/annotate/detection.jsx"],
   "exclude": ["node_modules"]
 }

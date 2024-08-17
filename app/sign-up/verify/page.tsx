@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, ChangeEvent, FormEvent, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import GuestNav from "../../components/navigation/GuestNav";
+import Image from "next/image";
+import { motion } from "framer-motion";
 
 export default function Verify() {
   const [code, setCode] = useState("");
@@ -51,7 +53,6 @@ export default function Verify() {
       });
 
       if (response.ok) {
-        // Handle successful verification
         setSuccessMessage("Verification successful! Redirecting to login page...");
         setErrorMessage("");
         setTimeout(() => {
@@ -98,30 +99,42 @@ export default function Verify() {
   };
 
   return (
-    <main className="bg-gradient-to-r from-gray-800 via-gray-900 to-black min-h-screen flex flex-col items-center justify-center text-white">
-      <nav className="bg-white bg-opacity-10 p-3 flex rounded-lg text-center items-center justify-between fixed top-4 left-0 right-0 mx-4 drop-shadow-2xl border border-gray-700">
-        <div className="text-teal-300 font-bold text-xl">AnTCV</div>
-        <div>
-          <Link href="/">
-            <button className="text-white bg-teal-500 p-2 rounded-lg hover:bg-teal-700 transition-all">
-              Home
-            </button>
-          </Link>
-        </div>
-      </nav>
-      <section className="flex flex-col items-center justify-center flex-grow w-full px-4">
-        <h1 className="text-4xl font-bold mb-8 animate-pulse-glow">Verify Your Account</h1>
-        <p className="text-center mb-8">A verification code has been sent to your email. Please check your inbox.</p>
-        <form
-          className="bg-white bg-opacity-10 p-8 rounded-lg drop-shadow-2xl border border-gray-700 max-w-md w-full"
+    <main className="flex flex-col bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 min-h-screen">
+      <GuestNav />
+      <section className="flex flex-col pt-32 items-center">
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-8"
+        >
+          <Image
+            src="/LOGO.png"
+            alt="AnTCV Logo"
+            width={100}
+            height={100}
+            className="mx-auto mb-4"
+          />
+          <h1 className="text-3xl font-bold text-blue-800">
+            Verify Your Account
+          </h1>
+          <p className="text-blue-600 mt-2">
+            A verification code has been sent to your email. Please check your inbox.
+          </p>
+        </motion.div>
+        <motion.form
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full"
           onSubmit={handleSubmit}
         >
-          <div className="mb-4">
-            <label className="block text-teal-300 text-sm font-bold mb-2" htmlFor="code">
+          <div className="mb-6">
+            <label className="block text-blue-700 text-sm font-semibold mb-2" htmlFor="code">
               Verification Code
             </label>
             <input
-              className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-teal-500"
+              className="w-full p-3 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 focus:outline-none focus:border-blue-500 transition duration-300"
               type="text"
               id="code"
               name="code"
@@ -129,42 +142,48 @@ export default function Verify() {
               value={code}
               onChange={handleChange}
             />
-            {errorMessage && <p className="text-red-500 text-xs italic mt-2">{errorMessage}</p>}
-            {successMessage && <p className="text-green-500 text-xs italic mt-2">{successMessage}</p>}
           </div>
-          <div className="flex items-center justify-between">
-            <button className="bg-teal-500 text-white py-2 px-4 rounded-lg hover:bg-teal-700 transition-all">
-              Verify
-            </button>
-          </div>
-        </form>
-        <div className="mt-4">
-          <button
+          {errorMessage && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-red-500 text-sm mb-4"
+              aria-live="polite"
+            >
+              {errorMessage}
+            </motion.p>
+          )}
+          {successMessage && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-green-600 text-sm mb-4"
+              aria-live="polite"
+            >
+              {successMessage}
+            </motion.p>
+          )}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="w-full bg-blue-600 text-white py-3 rounded-full font-semibold hover:bg-blue-700 transition duration-300 shadow-md mb-4"
+          >
+            Verify
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleSendCode}
             disabled={isCooldown}
-            className={`bg-teal-500 text-white py-2 px-4 rounded-lg ${isCooldown ? 'opacity-50 cursor-not-allowed' : 'hover:bg-teal-700'} transition-all`}
+            className={`w-full bg-white text-blue-600 py-3 rounded-full font-semibold border-2 border-blue-600 hover:bg-blue-50 transition duration-300 shadow-md ${isCooldown ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {isCooldown ? `Send Again (${cooldownTime}s)` : 'Send Again'}
-          </button>
-        </div>
+            {isCooldown ? `Send Again (${cooldownTime}s)` : 'Send New Code'}
+          </motion.button>
+        </motion.form>
       </section>
-      <footer className="bg-gray-900 bg-opacity-50 py-4 w-full text-center text-gray-400 border-t border-gray-700">
+      <footer className="mt-auto py-4 text-center text-blue-600 bg-white bg-opacity-90">
         © 2024 AnTCV. All rights reserved.
       </footer>
-      <style jsx>{`
-        @keyframes pulseGlow {
-          0%, 100% {
-            text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc, 0 0 30px #00ffcc, 0 0 40px #00ffcc, 0 0 50px #00ffcc, 0 0 60px #00ffcc, 0 0 70px #00ffcc;
-          }
-          50% {
-            text-shadow: 0 0 20px #00ffcc, 0 0 30px #00ffcc, 0 0 40px #00ffcc, 0 0 50px #00ffcc, 0 0 60px #00ffcc, 0 0 70px #00ffcc, 0 0 80px #00ffcc;
-          }
-        }
-
-        .animate-pulse-glow {
-          animation: pulseGlow 2s infinite;
-        }
-      `}</style>
     </main>
   );
 }

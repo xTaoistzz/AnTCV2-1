@@ -1,7 +1,6 @@
-// Updated WorkspacePage component with two projects per row
 "use client";
 import { ImBin } from "react-icons/im";
-import { FaEdit, FaCloudUploadAlt, FaImages } from "react-icons/fa";
+import { FaEdit, FaImages } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { HiMiniPhoto } from "react-icons/hi2";
@@ -11,7 +10,8 @@ import EditProject from "../components/workspace_props/edit";
 import AddCollaborator from "../components/workspace_props/share";
 import SharedProjects from "../components/workspace_props/shareproject";
 import { IoMdPeople } from "react-icons/io";
-
+import { motion } from "framer-motion";
+import CheckLoad from "../check-loading/page";
 interface Project {
   idproject: number;
   project_name: string;
@@ -177,79 +177,106 @@ export default function WorkspacePage() {
   };
 
   if (loading) {
-    return <div className="text-white">Loading...</div>;
+    return <div className=""><CheckLoad/></div>;
   }
 
   if (error) {
-    return <div className="text-white">{error}</div>;
+    return <div className="text-red-500">{error}</div>;
   }
 
   return (
-    <main className="bg-gradient-to-r from-gray-800 via-gray-900 to-black min-h-screen flex flex-col items-center text-white">
+    <main className="bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 min-h-screen flex flex-col items-center">
       <Navbar />
       <section className="p-6 w-full max-w-6xl mx-auto mt-20">
-        <h1 className="text-3xl font-bold mb-4">
+        <motion.h1 
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-4xl font-bold mb-6 text-blue-800"
+        >
           Welcome to Workspace, {username}!
-        </h1>
-        <div className="mb-4">
+        </motion.h1>
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mb-8"
+        >
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-teal-500 text-white py-2 px-4 rounded-lg hover:bg-teal-700 transition-all"
+            className="bg-blue-600 text-white py-3 px-6 rounded-full font-semibold hover:bg-blue-700 transition duration-300 shadow-md flex items-center"
           >
-            Create Project
+            <FaImages className="mr-2" /> Create New Project
           </button>
-        </div>
+        </motion.div>
         {projects.length === 0 ? (
-          <p className="text-gray-400">No projects available.</p>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="text-blue-600 text-lg"
+          >
+            No projects available. Start by creating a new project!
+          </motion.p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {projects.map((project) => (
-              <div
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {projects.map((project, index) => (
+              <motion.div
                 key={project.idproject}
-                className="border border-gray-300 rounded mb-4 p-4 flex items-center bg-gray-800 justify-between"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 * index }}
+                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300"
               >
                 <Link href={`/workspace/${project.idproject}`}>
-                  <div className="flex-grow flex items-center">
-                    {firstImgMap[project.idproject] ? (
-                      <img
-                        src={`${process.env.ORIGIN_URL}/img/${project.idproject}/thumbs/${firstImgMap[project.idproject]}`}
-                        alt="Project Icon"
-                        className="w-16 h-16 rounded-full object-cover mr-4"
-                      />
-                    ) : (
-                      <HiMiniPhoto className="w-16 h-16 text-gray-400 mr-4" />
-                    )}
-                    <div className="flex-grow">
-                      <h2 className="text-xl font-semibold">
-                        {project.project_name}
-                      </h2>
-                      <p>{project.description}</p>
+                  <div className="p-4">
+                    <div className="flex items-center mb-4">
+                      {firstImgMap[project.idproject] ? (
+                        <img
+                          src={`${process.env.ORIGIN_URL}/img/${project.idproject}/thumbs/${firstImgMap[project.idproject]}`}
+                          alt="Project Icon"
+                          className="w-16 h-16 rounded-full object-cover mr-4"
+                        />
+                      ) : (
+                        <HiMiniPhoto className="w-16 h-16 text-blue-400 mr-4" />
+                      )}
+                      <div>
+                        <h2 className="text-xl font-semibold text-blue-800">
+                          {project.project_name}
+                        </h2>
+                        <p className="text-blue-600">{project.description}</p>
+                      </div>
                     </div>
                   </div>
                 </Link>
-                <div className="space-x-3 flex">
+                <div className="bg-blue-50 p-4 flex justify-end space-x-2">
                   <button
                     onClick={() => handleEditProject(project.idproject)}
-                    className="bg-teal-500 text-white rounded-lg hover:bg-teal-700 transition-all p-3"
+                    className="bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 p-2"
                   >
                     <FaEdit className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => handleDeleteProject(project.idproject)}
-                    className="bg-red-500 text-white rounded-lg hover:bg-red-700 transition-all p-3"
+                    className="bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 p-2"
                   >
                     <ImBin className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => handleOpenAddCollaborator(project.idproject)}
-                    className='flex items-center bg-teal-500 text-white rounded-lg hover:bg-teal-700 transition-all p-3'
+                    className='bg-green-500 text-white rounded-full hover:bg-green-600 transition duration-300 p-2'
                   >
-                    <IoMdPeople className='w-5 h-5' /> {/* Adjust icon size */}
+                    <IoMdPeople className='w-5 h-5' />
                   </button>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         <CreateProject

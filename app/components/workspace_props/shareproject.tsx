@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { HiMiniPhoto } from "react-icons/hi2";
 import Link from "next/link"; // Import Link component
-
+import { motion } from "framer-motion";
 interface SharedProject {
   idproject: number;
   project_name: string;
@@ -83,13 +83,17 @@ const SharedProjects: React.FC<SharedProjectsProps> = ({ username }) => {
         <p className="text-gray-400">No shared projects available.</p>
       ) : (
         <ul>
-          {sharedProjects.map((project) => (
-            <li
-              key={project.idproject}
-              className="border border-gray-300 rounded mb-4 p-4 flex items-center bg-gray-800"
-            >
-              <Link href={`/workspace/${project.idproject}`} passHref>
-                <div className="flex-grow flex items-center">
+          {sharedProjects.map((project, index) => (
+            <motion.div
+            key={project.idproject}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 * index }}
+            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300"
+          >
+            <Link href={`/workspace/${project.idproject}`}>
+              <div className="p-4">
+                <div className="flex items-center mb-4">
                   {firstImgMap[project.idproject] ? (
                     <img
                       src={`${process.env.ORIGIN_URL}/img/${project.idproject}/thumbs/${firstImgMap[project.idproject]}`}
@@ -97,15 +101,19 @@ const SharedProjects: React.FC<SharedProjectsProps> = ({ username }) => {
                       className="w-16 h-16 rounded-full object-cover mr-4"
                     />
                   ) : (
-                    <HiMiniPhoto className="w-16 h-16 text-gray-400 mr-4" />
+                    <HiMiniPhoto className="w-16 h-16 text-blue-400 mr-4" />
                   )}
-                  <div className="flex-grow">
-                    <h2 className="text-xl font-semibold">{project.project_name}</h2>
-                    <p>{project.description}</p>
+                  <div>
+                    <h2 className="text-xl font-semibold text-blue-800">
+                      {project.project_name}
+                    </h2>
+                    <p className="text-blue-600">{project.description}</p>
                   </div>
                 </div>
-              </Link>
-            </li>
+              </div>
+            </Link>
+
+          </motion.div>
           ))}
         </ul>
       )}

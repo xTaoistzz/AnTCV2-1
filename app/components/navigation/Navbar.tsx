@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { motion } from "framer-motion";
+import Image from "next/image";
 
 const Navbar = () => {
   const router = useRouter();
@@ -28,46 +30,81 @@ const Navbar = () => {
   const closeModal = () => setShowModal(false);
 
   return (
-    <main>
-      <nav className="bg-white bg-opacity-10 p-3 flex rounded-lg text-center items-center justify-between fixed top-4 left-0 right-0 mx-4 drop-shadow-2xl border border-gray-700 z-50">
-        <div className="text-teal-300 font-bold text-2xl ml-10">AnTCV</div>
-        <div className="space-x-3">
+    <nav className="bg-white bg-opacity-90 shadow-md py-4 px-6 fixed top-0 left-0 right-0 z-50">
+      <div className="max-w-6xl mx-auto flex justify-between items-center">
+        <Link href="/">
+          <motion.div 
+            className="flex items-center space-x-2"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Image
+              src="/LOGO.png"
+              alt="AnTCV Logo"
+              width={40}
+              height={40}
+              className="w-10 h-10"
+            />
+            <span className="font-bold text-2xl text-blue-700">AnTCV</span>
+          </motion.div>
+        </Link>
+        <div className="space-x-4">
           <Link href="/workspace">
-            <button className="text-white bg-teal-500 p-2 rounded-lg hover:bg-teal-700 transition-all">
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="font-semibold px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-md"
+            >
               Workspace
-            </button>
+            </motion.button>
           </Link>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={openModal}
-            className="text-white bg-teal-500 p-2 rounded-lg hover:bg-teal-700 transition-all"
+            className="font-semibold px-6 py-2 bg-white text-blue-600 border-2 border-blue-600 rounded-full hover:bg-blue-50 transition-colors shadow-md"
           >
             Sign Out
-          </button>
+          </motion.button>
         </div>
-      </nav>
+      </div>
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-gray-800 rounded-lg p-6 space-y-4 shadow-lg">
-            <h2 className="text-xl font-semibold text-white">Confirm Sign Out</h2>
-            <p className="text-gray-300">Are you sure you want to sign out?</p>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+        >
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-white rounded-xl p-6 space-y-4 shadow-2xl max-w-sm w-full mx-4"
+          >
+            <h2 className="text-2xl font-semibold text-blue-800">Confirm Sign Out</h2>
+            <p className="text-blue-600">Are you sure you want to sign out?</p>
             <div className="flex justify-end space-x-3">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={closeModal}
-                className="text-white bg-gray-500 p-2 rounded-lg hover:bg-gray-700 transition-all"
+                className="font-semibold px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors"
               >
                 Cancel
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleSignOut}
-                className="text-white bg-teal-500 p-2 rounded-lg hover:bg-teal-700 transition-all"
+                className="font-semibold px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
               >
                 Sign Out
-              </button>
+              </motion.button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
-    </main>
+    </nav>
   );
 };
 
