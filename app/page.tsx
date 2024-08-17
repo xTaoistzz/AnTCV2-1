@@ -42,7 +42,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 mt-20">
+    <main className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 pt-20">
       <GuestNav />
       
       <section className="container mx-auto px-4 py-20">

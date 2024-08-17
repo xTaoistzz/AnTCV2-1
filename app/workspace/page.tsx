@@ -187,7 +187,7 @@ export default function WorkspacePage() {
   return (
     <main className="bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 min-h-screen flex flex-col items-center">
       <Navbar />
-      <section className="p-6 w-full max-w-6xl mx-auto mt-20">
+      <section className="p-6 w-full max-w-6xl mx-auto pt-20">
         <motion.h1 
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
