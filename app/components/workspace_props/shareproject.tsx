@@ -1,8 +1,8 @@
-// components/workspace_props/SharedProjects.tsx
 import { useState, useEffect } from "react";
 import { HiMiniPhoto } from "react-icons/hi2";
-import Link from "next/link"; // Import Link component
+import Link from "next/link";
 import { motion } from "framer-motion";
+
 interface SharedProject {
   idproject: number;
   project_name: string;
@@ -11,10 +11,12 @@ interface SharedProject {
 
 interface SharedProjectsProps {
   username: string;
+  searchTerm: string;
 }
 
-const SharedProjects: React.FC<SharedProjectsProps> = ({ username }) => {
+const SharedProjects: React.FC<SharedProjectsProps> = ({ username, searchTerm }) => {
   const [sharedProjects, setSharedProjects] = useState<SharedProject[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<SharedProject[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [firstImgMap, setFirstImgMap] = useState<{ [key: number]: string }>({});
@@ -28,6 +30,7 @@ const SharedProjects: React.FC<SharedProjectsProps> = ({ username }) => {
       if (response.ok) {
         const data = await response.json();
         setSharedProjects(data.project);
+        setFilteredProjects(data.project);
         fetchFirstImages(data.project);
       } else {
         setError("Failed to fetch shared projects");
@@ -68,56 +71,95 @@ const SharedProjects: React.FC<SharedProjectsProps> = ({ username }) => {
     fetchSharedProjects();
   }, []);
 
+  useEffect(() => {
+    const filtered = sharedProjects.filter(project =>
+      project.project_name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredProjects(filtered);
+  }, [searchTerm, sharedProjects]);
+
   if (loading) {
-    return <div className="text-white">Loading shared projects...</div>;
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="text-blue-600 text-lg"
+      >
+        Loading shared projects...
+      </motion.div>
+    );
   }
 
   if (error) {
-    return <div className="text-white">{error}</div>;
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="text-red-500 text-lg"
+      >
+        {error}
+      </motion.div>
+    );
   }
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Projects Shared with You</h2>
-      {sharedProjects.length === 0 ? (
-        <p className="text-gray-400">No shared projects available.</p>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {filteredProjects.length === 0 ? (
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-blue-600 text-lg"
+        >
+          {searchTerm ? "No shared projects match your search." : "No shared projects available. Projects shared with you will appear here."}
+        </motion.p>
       ) : (
-        <ul>
-          {sharedProjects.map((project, index) => (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="space-y-4"
+        >
+          {filteredProjects.map((project, index) => (
             <motion.div
-            key={project.idproject}
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 * index }}
-            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300"
-          >
-            <Link href={`/workspace/${project.idproject}`}>
-              <div className="p-4">
-                <div className="flex items-center mb-4">
-                  {firstImgMap[project.idproject] ? (
-                    <img
-                      src={`${process.env.ORIGIN_URL}/img/${project.idproject}/thumbs/${firstImgMap[project.idproject]}`}
-                      alt="Project Icon"
-                      className="w-16 h-16 rounded-full object-cover mr-4"
-                    />
-                  ) : (
-                    <HiMiniPhoto className="w-16 h-16 text-blue-400 mr-4" />
-                  )}
-                  <div>
-                    <h2 className="text-xl font-semibold text-blue-800">
-                      {project.project_name}
-                    </h2>
-                    <p className="text-blue-600">{project.description}</p>
+              key={project.idproject}
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 * index }}
+              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300"
+            >
+              <Link href={`/workspace/${project.idproject}`}>
+                <div className="p-4">
+                  <div className="flex items-center mb-4">
+                    {firstImgMap[project.idproject] ? (
+                      <img
+                        src={`${process.env.ORIGIN_URL}/img/${project.idproject}/thumbs/${firstImgMap[project.idproject]}`}
+                        alt="Project Icon"
+                        className="w-16 h-16 rounded-full object-cover mr-4"
+                      />
+                    ) : (
+                      <HiMiniPhoto className="w-16 h-16 text-blue-400 mr-4" />
+                    )}
+                    <div>
+                      <h2 className="text-xl font-semibold text-blue-800">
+                        {project.project_name}
+                      </h2>
+                      <p className="text-blue-600">{project.description}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-
-          </motion.div>
+              </Link>
+            </motion.div>
           ))}
-        </ul>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

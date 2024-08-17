@@ -1,12 +1,12 @@
 "use client";
 import { ImBin } from "react-icons/im";
-import { FaEdit, FaCloudUploadAlt, FaImages } from "react-icons/fa";
+import { FaEdit, FaCloudUploadAlt, FaImages, FaPlus, FaCheck, FaTimes } from "react-icons/fa";
 import React, { useState, useCallback, useEffect } from "react";
 import { useParams } from "next/navigation";
 import CreateClass from "@/app/components/annotation-props/class/CreateClass";
 import Dropzone from "../upload/classification_upload";
 import Gallery from "./classification_props/gallery";
-import RenameClass from "./classification_props/renameClass";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Label {
   class_index: string;
@@ -22,8 +22,8 @@ const Class = () => {
   const [imageData, setImageData] = useState<{ [key: string]: string[] }>({});
   const [currentPage, setCurrentPage] = useState<{ [key: string]: number }>({});
   const [imagesPerPage] = useState(18);
-  const [renameClassIndex, setRenameClassIndex] = useState<string | null>(null);
-  const [newClassLabel, setNewClassLabel] = useState<string>("");
+  const [editingClassIndex, setEditingClassIndex] = useState<string | null>(null);
+  const [editedLabel, setEditedLabel] = useState<string>("");
   const params = useParams<{ id: string }>();
 
   const fetchClass = useCallback(async () => {
@@ -105,13 +105,23 @@ const Class = () => {
     }
   };
 
-  const handleRenameClass = async (classIndex: string) => {
-    try {
-      if (newClassLabel.trim() === "") {
-        console.error("Class name cannot be empty");
-        return;
-      }
+  const handleEditStart = (classIndex: string, currentLabel: string) => {
+    setEditingClassIndex(classIndex);
+    setEditedLabel(currentLabel);
+  };
 
+  const handleEditCancel = () => {
+    setEditingClassIndex(null);
+    setEditedLabel("");
+  };
+
+  const handleEditSave = async (classIndex: string) => {
+    if (editedLabel.trim() === "") {
+      console.error("Class name cannot be empty");
+      return;
+    }
+
+    try {
       const response = await fetch(
         `${process.env.ORIGIN_URL}/classification/updateClass`,
         {
@@ -122,7 +132,7 @@ const Class = () => {
           body: JSON.stringify({
             idproject: params.id,
             index: classIndex,
-            class_label: newClassLabel,
+            class_label: editedLabel,
           }),
           credentials: "include",
         }
@@ -132,12 +142,12 @@ const Class = () => {
         setTypedata((prev) =>
           prev.map((cls) =>
             cls.class_index === classIndex
-              ? { ...cls, class_label: newClassLabel }
+              ? { ...cls, class_label: editedLabel }
               : cls
           )
         );
-        setRenameClassIndex(null);
-        setNewClassLabel("");
+        setEditingClassIndex(null);
+        setEditedLabel("");
       } else {
         console.error("Error renaming class:", await response.text());
       }
@@ -189,95 +199,128 @@ const Class = () => {
   };
 
   return (
-    <main className="bg-gradient-to-r from-gray-800 via-gray-900 to-gray-950 p-6 rounded-lg">
+    <main className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg shadow-lg">
       <div className="p-6">
-        <div className="flex m-5 justify-between border-b border-gray-600 pb-4">
-          <button
+        <motion.div 
+          className="flex justify-between items-center mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h1 className="text-3xl font-bold text-blue-800">Classes</h1>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleShowCreate}
-            className="border border-gray-600 bg-gray-800 text-white hover:bg-teal-600 transition-colors duration-300 hover:text-gray-800 font-normal rounded-lg p-2"
+            className="bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300 font-semibold rounded-lg px-4 py-2 flex items-center"
           >
-            Create Class
-          </button>
-        </div>
-        {typedata.map((type) => (
-          <div
-            key={type.class_index}
-            className="flex flex-col pl-6 pr-6 space-y-4 mb-4"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="bg-white p-3 rounded-full">
-                  {parseInt(type.class_index) + 1}
+            <FaPlus className="mr-2" /> Create Class
+          </motion.button>
+        </motion.div>
+        <AnimatePresence>
+          {typedata.map((type) => (
+            <motion.div
+              key={type.class_index}
+              className="bg-white rounded-lg shadow-md mb-4 overflow-hidden"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="flex items-center justify-between p-4 bg-blue-50">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-blue-600 text-white p-3 rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                    {parseInt(type.class_index) + 1}
+                  </div>
+                  <div className="text-lg font-semibold text-blue-800">
+                    {editingClassIndex === type.class_index ? (
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          value={editedLabel}
+                          onChange={(e) => setEditedLabel(e.target.value)}
+                          className="border-b border-blue-500 bg-transparent focus:outline-none"
+                        />
+                        <button
+                          onClick={() => handleEditSave(type.class_index)}
+                          className="ml-2 text-green-500 hover:text-green-600"
+                        >
+                          <FaCheck />
+                        </button>
+                        <button
+                          onClick={handleEditCancel}
+                          className="ml-2 text-red-500 hover:text-red-600"
+                        >
+                          <FaTimes />
+                        </button>
+                      </div>
+                    ) : (
+                      <span onClick={() => handleEditStart(type.class_index, type.class_label)}>
+                        {type.class_label}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="p-2 bg-gray-800 text-white rounded-md shadow-md">
-                  {renameClassIndex === type.class_index ? (
-                    <RenameClass
-                      currentLabel={type.class_label}
-                      onSave={(newLabel) => {
-                        setNewClassLabel(newLabel);
-                        handleRenameClass(type.class_index);
-                      }}
-                      onCancel={() => {
-                        setRenameClassIndex(null);
-                        setNewClassLabel("");
-                      }}
+                <div className="flex space-x-2">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => toggleDropzone(type.class_index)}
+                    className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors duration-300"
+                  >
+                    <FaCloudUploadAlt className="w-5 h-5" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => toggleGallery(type.class_index)}
+                    className="bg-purple-500 text-white p-2 rounded-full hover:bg-purple-600 transition-colors duration-300 flex items-center"
+                  >
+                    <FaImages className="w-5 h-5 mr-2" />
+                    <span>{imageData[type.class_index]?.length || 0}</span>
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => handleDeleteClass(type.class_index)}
+                    className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-300"
+                  >
+                    <ImBin className="w-5 h-5" />
+                  </motion.button>
+                </div>
+              </div>
+              <AnimatePresence>
+                {visibleDropzone === type.class_index && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Dropzone class_index={type.class_index} />
+                  </motion.div>
+                )}
+                {visibleGallery === type.class_index && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Gallery
+                      images={getPaginatedImages(type.class_index)}
+                      classIndex={type.class_index}
+                      currentPage={currentPage[type.class_index] || 1}
+                      onPageChange={handlePageChange}
+                      totalImages={imageData[type.class_index]?.length || 0}
+                      imagesPerPage={imagesPerPage}
                     />
-                  ) : (
-                    <span>{type.class_label}</span>
-                  )}
-                </div>
-              </div>
-              <div className="flex space-x-2">
-              <button
-                  onClick={() =>
-                    renameClassIndex === type.class_index
-                      ? setRenameClassIndex(null)
-                      : setRenameClassIndex(type.class_index)
-                  }
-                  className="border border-gray-600 bg-blue-600 text-white hover:bg-blue-800 transition-colors duration-300 font-normal rounded-lg p-2"
-                >
-                  <FaEdit className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => toggleDropzone(type.class_index)}
-                  className="border border-gray-600 bg-green-600 text-white hover:bg-green-800 transition-colors duration-300 font-normal rounded-lg p-2"
-                >
-                  <FaCloudUploadAlt className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => toggleGallery(type.class_index)}
-                  className="flex border border-gray-600 bg-purple-600 text-white hover:bg-purple-800 transition-colors duration-300 font-normal rounded-lg p-2"
-                >
-                  <FaImages className="w-5 h-5" />
-                  <span className="ml-3">
-                    ({imageData[type.class_index]?.length || 0} images)
-
-                  </span>
-                </button>
-                <button
-                  onClick={() => handleDeleteClass(type.class_index)}
-                  className="border border-gray-600 bg-red-600 text-white hover:bg-red-800 transition-colors duration-300 font-normal rounded-lg p-2"
-                >
-                  <ImBin className="w-5 h-5" />
-                </button>
-               
-              </div>
-            </div>
-            {visibleDropzone === type.class_index && (
-              <Dropzone class_index={type.class_index} />
-            )}
-            {visibleGallery === type.class_index && (
-              <Gallery
-                images={getPaginatedImages(type.class_index)}
-                classIndex={type.class_index}
-                currentPage={currentPage[type.class_index] || 1}
-                onPageChange={handlePageChange}
-                totalImages={imageData[type.class_index]?.length || 0}
-                imagesPerPage={imagesPerPage}
-              />
-            )}
-          </div>
-        ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
       <CreateClass
         isOpen={showCreate}

@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useParams, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaCloudUploadAlt, FaTimes, FaCheck } from "react-icons/fa";
 
 interface DropzoneProps {
   class_index: string;
@@ -15,6 +17,7 @@ const Dropzone: React.FC<DropzoneProps> = ({ class_index }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | null } | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
@@ -25,6 +28,7 @@ const Dropzone: React.FC<DropzoneProps> = ({ class_index }) => {
   };
 
   const handleSave = async () => {
+    setIsUploading(true);
     const formData = new FormData();
     formData.append("idproject", params.id);
     formData.append("index", class_index);
@@ -46,20 +50,24 @@ const Dropzone: React.FC<DropzoneProps> = ({ class_index }) => {
       const data = await response.json();
       console.log("File uploaded successfully:", data);
       setNotification({ message: "Files uploaded successfully!", type: 'success' });
-      window.location.reload() // Refresh the page after successful upload
+      setTimeout(() => {
+        window.location.reload(); // Refresh the page after successful upload
+      }, 2000);
     } catch (error) {
       console.error("Error uploading file:", error);
       setNotification({ message: "Error uploading files. Please try again.", type: 'error' });
+    } finally {
+      setIsUploading(false);
     }
   };
 
   useEffect(() => {
-    if (notification?.type === 'success') {
+    if (notification) {
       const timer = setTimeout(() => {
         setNotification(null);
-      }, 5000); // Hide notification after 5 seconds
+      }, 5000);
 
-      return () => clearTimeout(timer); // Clean up the timer on component unmount
+      return () => clearTimeout(timer);
     }
   }, [notification]);
 
@@ -87,72 +95,121 @@ const Dropzone: React.FC<DropzoneProps> = ({ class_index }) => {
     }
   };
 
-  const { getRootProps, getInputProps } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   return (
-    <main className="bg-gradient-to-r from-gray-800 via-gray-900 to-gray-950 p-6 rounded-lg">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="bg-white p-6 rounded-lg shadow-lg"
+    >
       <div
         {...getRootProps()}
-        className="border-4 border-dashed border-gray-600 p-6 rounded-lg cursor-pointer flex flex-col items-center justify-center mb-4"
+        className={`border-4 border-dashed ${
+          isDragActive ? 'border-blue-500 bg-blue-50' : 'border-blue-200'
+        } p-6 rounded-lg cursor-pointer flex flex-col items-center justify-center mb-6 transition-colors duration-300`}
       >
         <input {...getInputProps()} />
-        <p className="text-white">
-          Drag 'n' drop some files here, or click to select files
+        <FaCloudUploadAlt className="text-5xl text-blue-500 mb-4" />
+        <p className="text-blue-800 text-center">
+          {isDragActive
+            ? "Drop the files here"
+            : "Drag 'n' drop some files here, or click to select files"}
         </p>
       </div>
 
-      {notification && (
-        <div
-          className={`mb-4 p-4 rounded-lg ${
-            notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-          } text-white`}
-        >
-          {notification.message}
-        </div>
-      )}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`mb-4 p-4 rounded-lg ${
+              notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } text-white flex items-center justify-between`}
+          >
+            <span>{notification.message}</span>
+            <button onClick={() => setNotification(null)} className="text-white">
+              <FaTimes />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className="grid grid-cols-5 gap-4 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
         {currentFiles.map((file, index) => (
-          <div key={index} className="relative h-32 w-32">
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="relative group"
+          >
             <img
               src={URL.createObjectURL(file)}
               alt={file.name}
-              className="h-full w-full object-cover rounded-md"
+              className="h-32 w-full object-cover rounded-md shadow-md transition-transform transform group-hover:scale-105"
             />
             <button
               onClick={() => removeFile(file)}
-              className="absolute top-0 right-0 bg-red-600 text-white rounded-full p-1 m-1"
+              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
             >
-              &times;
+              <FaTimes />
             </button>
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      <div className="flex justify-between mb-4">
-        <button
-          onClick={handlePreviousPage}
-          disabled={currentPage === 1}
-          className="bg-gray-800 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <button
-          onClick={handleNextPage}
-          disabled={currentPage === totalPages}
-          className="bg-gray-800 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+      {files.length > 0 && (
+        <div className="flex justify-between items-center mb-6">
+          <button
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg disabled:opacity-50 transition-colors duration-200 hover:bg-blue-600"
+          >
+            Previous
+          </button>
+          <span className="text-blue-800">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg disabled:opacity-50 transition-colors duration-200 hover:bg-blue-600"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
-      <button
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={handleSave}
-        className="bg-teal-600 text-white px-6 py-2 rounded-lg"
+        disabled={files.length === 0 || isUploading}
+        className={`w-full bg-blue-500 text-white px-6 py-3 rounded-lg flex items-center justify-center ${
+          files.length === 0 || isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'
+        } transition-colors duration-200`}
       >
-        Save
-      </button>
-    </main>
+        {isUploading ? (
+          <>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="mr-2"
+            >
+              <FaCloudUploadAlt />
+            </motion.div>
+            Uploading...
+          </>
+        ) : (
+          <>
+            <FaCheck className="mr-2" /> Save
+          </>
+        )}
+      </motion.button>
+    </motion.div>
   );
 };
 

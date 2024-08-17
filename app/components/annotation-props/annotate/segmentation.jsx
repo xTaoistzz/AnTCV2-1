@@ -180,7 +180,7 @@ function ImageWithPolygon({ idproject, idsegmentation, imageUrl }) {
           ref={imgEl}
           src={imageUrl}
           alt="Annotated Image"
-          className="rounded shadow-md mb-4"
+          className="rounded shadow-md"
           style={{ cursor: "crosshair", maxWidth: "100%", height: "auto" }}
         />
         <div

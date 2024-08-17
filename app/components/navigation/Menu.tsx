@@ -2,11 +2,14 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { FaClipboardList, FaUpload, FaPencilAlt, FaFileImport, FaFileExport, FaExchangeAlt } from "react-icons/fa";
 
 const SidebarMenu = () => {
     const router = useRouter();
     const params = useParams<{ id: string }>();
     const [selectedType, setSelectedType] = useState<string | null>(null);
+    const [isChangeTypeOpen, setIsChangeTypeOpen] = useState(false);
 
     useEffect(() => {
         setSelectedType(localStorage.getItem("Type"));
@@ -15,85 +18,65 @@ const SidebarMenu = () => {
     const handleSelectType = (type: string) => {
         localStorage.setItem("Type", type);
         setSelectedType(type);
+        setIsChangeTypeOpen(false);
         router.push(`/workspace/${params.id}/${type}`);
     };
 
+    const menuItems = [
+        { name: "Classes", icon: <FaClipboardList />, link: `/${selectedType}` },
+        { name: "Upload", icon: <FaUpload />, link: `/${selectedType}/upload` },
+        { name: "Annotate", icon: <FaPencilAlt />, link: `/${selectedType}/annotate` },
+        { name: "Import", icon: <FaFileImport />, link: `/${selectedType}/import` },
+        { name: "Export", icon: <FaFileExport />, link: `/${selectedType}/export` },
+    ];
+
     return (
-        <nav className="space-y-4">
+        <nav className="space-y-6">
             <ul className="space-y-2">
-                <li>
-                    <Link href={`/workspace/${params.id}/${selectedType}`}>
-                        <div className="block py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-300">
-                            Classes
-                        </div>
-                    </Link>
-                </li>
-                {selectedType !== "classification" && (
-                    <>
-                        <li>
-                            <Link href={`/workspace/${params.id}/${selectedType}/upload`}>
-                                <div className="block py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-300">
-                                    Upload
+                {menuItems.map((item, index) => (
+                    <li key={index}>
+                        {(selectedType !== "classification" || item.name === "Classes" || item.name === "Export") && (
+                            <Link href={`/workspace/${params.id}${item.link}`}>
+                                <div className="flex items-center py-2 px-4 rounded-lg hover:bg-blue-100 transition duration-300 text-blue-800">
+                                    {item.icon}
+                                    <span className="ml-3">{item.name}</span>
                                 </div>
                             </Link>
-                        </li>
-                        <li>
-                            <Link href={`/workspace/${params.id}/${selectedType}/annotate`}>
-                                <div className="block py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-300">
-                                    Annotate
-                                </div>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href={`/workspace/${params.id}/${selectedType}/import`}>
-                                <div className="block py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-300">
-                                    Import
-                                </div>
-                            </Link>
-                        </li>
-                    </>
-                )}
-                <li>
-                    <Link href={`/workspace/${params.id}/${selectedType}/export`}>
-                        <div className="block py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-300">
-                            Export
-                        </div>
-                    </Link>
-                </li>
+                        )}
+                    </li>
+                ))}
             </ul>
 
-            <div className="pt-3 space-y-2 flex flex-col">
-                <div>Change Type to</div>
+            <div className="pt-3">
                 <button
-                    className={`p-2 rounded-r-lg focus:outline-none focus:ring-4 transition duration-300 ${
-                        selectedType === "classification"
-                            ? "bg-red-700 ring-red-500 text-white shadow-lg"
-                            : "bg-red-500 hover:bg-red-700 ring-red-500 text-gray-900"
-                    }`}
-                    onClick={() => handleSelectType("classification")}
+                    onClick={() => setIsChangeTypeOpen(!isChangeTypeOpen)}
+                    className="flex items-center w-full py-2 px-4 rounded-lg hover:bg-blue-100 transition duration-300 text-blue-800"
                 >
-                    Classification
+                    <FaExchangeAlt />
+                    <span className="ml-3">Change Type</span>
                 </button>
-                <button
-                    className={`p-2 rounded-r-lg focus:outline-none focus:ring-4 transition duration-300 ${
-                        selectedType === "detection"
-                            ? "bg-yellow-700 ring-yellow-500 text-white shadow-lg"
-                            : "bg-yellow-500 hover:bg-yellow-700 ring-yellow-500 text-gray-900"
-                    }`}
-                    onClick={() => handleSelectType("detection")}
-                >
-                    Detection
-                </button>
-                <button
-                    className={`p-2 rounded-r-lg focus:outline-none focus:ring-4 transition duration-300 ${
-                        selectedType === "segmentation"
-                            ? "bg-blue-700 ring-blue-500 text-white shadow-lg"
-                            : "bg-blue-500 hover:bg-blue-700 ring-blue-500 text-gray-900"
-                    }`}
-                    onClick={() => handleSelectType("segmentation")}
-                >
-                    Segmentation
-                </button>
+                {isChangeTypeOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="mt-2 space-y-2"
+                    >
+                        {["classification", "detection", "segmentation"].map((type) => (
+                            <button
+                                key={type}
+                                className={`w-full p-2 rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${
+                                    selectedType === type
+                                        ? "bg-blue-600 text-white shadow-md"
+                                        : "bg-blue-100 hover:bg-blue-200 text-blue-800"
+                                }`}
+                                onClick={() => handleSelectType(type)}
+                            >
+                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                            </button>
+                        ))}
+                    </motion.div>
+                )}
             </div>
         </nav>
     );

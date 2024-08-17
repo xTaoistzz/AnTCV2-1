@@ -1,8 +1,10 @@
 "use client";
 import { ImBin } from "react-icons/im";
+import { FaEdit, FaPlus } from "react-icons/fa";
 import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import CreateClass from "@/app/components/annotation-props/class/CreateClass";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Label {
   class_id: string;
@@ -68,13 +70,10 @@ const Class = () => {
           credentials: "include",
         });
         const res = await response.json()
-        if (res.type==="success") {
+        if (res.type === "success") {
           fetchClass()
           window.location.reload()
         }
-//   throw new Error("Failed to delete class");
-        // Optionally refresh the class list
-        
       }
     } catch (error) {
       console.error("Error deleting class:", error);
@@ -110,50 +109,87 @@ const Class = () => {
   };
 
   return (
-    <main className="bg-gradient-to-r from-gray-800 via-gray-900 to-gray-950 p-6 rounded-lg">
+    <main className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg shadow-lg">
       <div className="p-6">
-        <div className="flex m-5 justify-left border-b border-gray-600 pb-4 space-y-3">
-          
-          <button
+        <motion.div 
+          className="flex justify-between items-center mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h1 className="text-3xl font-bold text-blue-800">Classes</h1>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleShowCreate}
-            className=" border border-gray-600 bg-gray-800 text-white hover:bg-teal-600 transition-colors duration-300 hover:text-gray-800 font-normal rounded-lg p-2"
+            className="bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300 font-semibold rounded-lg px-4 py-2 flex items-center"
           >
-            Create Class
-          </button>
-        </div>
-        {/* Render the fetched classes */}
-        <div className="text-white pb-3">There are {typedata.length} classes, You can change The class name by click at there name.</div>
-        {typedata.map((type, index) => (
-          <div
-            key={type.class_id}
-            className="flex pl-6 pr-6 space-x-3 mb-4 items-center"
-          >
-            <div className="bg-white p-3 rounded-full">{index + 1}</div>
-            {editingClassId === type.class_id ? (
-              <input
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                onBlur={() => handleRenameSubmit(type.class_id)}
-                autoFocus
-                className="flex-1 p-2 bg-gray-800 text-white rounded-md shadow-md"
-              />
-            ) : (
-              <div className="flex-1 p-2 bg-gray-800 text-white rounded-md shadow-md">
-                <span
-                  onClick={() => handleEdit(type.class_id, type.class_label)}
-                >
-                  {type.class_label}
-                </span>
-              </div>
-            )}
-            <button
-              onClick={() => handleDelete(type.class_id)}
-              className="border border-red-600 bg-red-800 text-white hover:bg-red-600 transition-colors duration-300 hover:text-gray-800 font-normal rounded-lg p-2"
+            <FaPlus className="mr-2" /> Create Class
+          </motion.button>
+        </motion.div>
+        
+        <motion.p 
+          className="text-blue-700 mb-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          There are {typedata.length} classes. Click on a class name to edit it.
+        </motion.p>
+
+        <AnimatePresence>
+          {typedata.map((classItem, index) => (
+            <motion.div
+              key={classItem.class_id}
+              className="bg-white rounded-lg shadow-md mb-4 overflow-hidden"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
             >
-              <ImBin className="w-5 h-5" />
-            </button>
-          </div>
-        ))}
+              <div className="flex items-center p-4">
+                <div className="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold mr-4">
+                  {index + 1}
+                </div>
+                {editingClassId === classItem.class_id ? (
+                  <input
+                    value={newLabel}
+                    onChange={(e) => setNewLabel(e.target.value)}
+                    onBlur={() => handleRenameSubmit(classItem.class_id)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleRenameSubmit(classItem.class_id)}
+                    autoFocus
+                    className="flex-1 p-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                ) : (
+                  <div 
+                    className="flex-1 p-2 text-blue-800 font-medium cursor-pointer hover:text-blue-600 transition-colors duration-300"
+                    onClick={() => handleEdit(classItem.class_id, classItem.class_label)}
+                  >
+                    {classItem.class_label}
+                  </div>
+                )}
+                <div className="flex space-x-2">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => handleEdit(classItem.class_id, classItem.class_label)}
+                    className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors duration-300"
+                  >
+                    <FaEdit className="w-5 h-5" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => handleDelete(classItem.class_id)}
+                    className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-300"
+                  >
+                    <ImBin className="w-5 h-5" />
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
       <CreateClass
         isOpen={showCreate}

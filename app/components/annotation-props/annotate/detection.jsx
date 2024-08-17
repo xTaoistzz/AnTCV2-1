@@ -1,7 +1,7 @@
-"use client";
 import React, { useEffect, useRef, useState } from "react";
 import { Annotorious } from "@recogito/annotorious";
 import "@recogito/annotorious/dist/annotorious.min.css";
+import { Save, RefreshCw, Crosshair } from 'lucide-react';
 
 function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
   const imgEl = useRef(null);
@@ -9,6 +9,8 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
   const [annotations, setAnnotations] = useState([]);
   const [vocabulary, setVocabulary] = useState([]);
   const [mouseCoords, setMouseCoords] = useState({ x: 0, y: 0 });
+  const [isSaving, setIsSaving] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchClassNames = async () => {
     try {
@@ -24,6 +26,7 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
   };
 
   const fetchBoundingBoxes = async () => {
+    setIsRefreshing(true);
     try {
       const response = await fetch(
         `${process.env.ORIGIN_URL}/detection/bounding_box/${iddetection}`,
@@ -31,7 +34,6 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
       );
       const data = await response.json();
 
-      // Clear old annotations before setting new ones
       setAnnotations([]);
 
       if (anno) {
@@ -60,6 +62,8 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
       }
     } catch (error) {
       console.error("Error fetching bounding boxes:", error);
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -75,12 +79,13 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
             vocabulary: vocabulary,
             style: {
               color: 'white',
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              backgroundColor: 'rgba(59, 130, 246, 0.8)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '0.375rem', // Equivalent to rounded-md in Tailwind
-              padding: '0.5rem', // Equivalent to p-2 in Tailwind
-              margin: '0.5rem', // Equivalent to m-2 in Tailwind
-              fontSize: '0.875rem', // Equivalent to text-sm in Tailwind
+              borderRadius: '0.375rem',
+              padding: '0.5rem',
+              margin: '0.5rem',
+              fontSize: '0.875rem',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
             },
           },
         ],
@@ -153,13 +158,15 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
     if (anno) {
       fetchBoundingBoxes();
     }
-  }, [anno, iddetection]); // Added iddetection to the dependency array
+  }, [anno, iddetection]);
 
   const autofetch = () => {
-    fetchClassNames()
-    fetchBoundingBoxes()
-  }
+    fetchClassNames();
+    fetchBoundingBoxes();
+  };
+
   const sendBoundingBoxToBackend = async () => {
+    setIsSaving(true);
     const dataToSend = {
       idproject: idproject,
       iddetection: iddetection,
@@ -191,6 +198,8 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
       console.log("Success:", result);
     } catch (error) {
       console.error("Error:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -202,25 +211,41 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
   };
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="text-gray-500 mb-4">
-        Draw some Bounding Box on images to add Label.
-      </div>
-      <div className="self-end mb-4 flex gap-2">
+    <div className="flex flex-col items-center bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 p-8 rounded-lg shadow-lg">
+      <div className="self-end flex gap-2 mb-2">
         <button
           onClick={sendBoundingBoxToBackend}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow-md hover:bg-blue-700"
+          className="bg-blue-600 text-white px-4 py-2 rounded-full shadow-md hover:bg-blue-700 transition duration-300 flex items-center"
+          disabled={isSaving}
         >
-          Save
+          {isSaving ? (
+            <>
+              <RefreshCw className="animate-spin mr-2" size={18} />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="mr-2" size={18} />
+              Save
+            </>
+          )}
+        </button>
+        <button
+          onClick={fetchBoundingBoxes}
+          className="bg-blue-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-blue-600 transition duration-300 flex items-center"
+          disabled={isRefreshing}
+        >
+          <RefreshCw className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} size={18} />
+          Refresh
         </button>
       </div>
-      <div className="relative max-w-full" style={{ maxWidth: "50vw" }} onMouseMove={handleMouseMove}>
+      <div className="relative max-w-full" style={{ maxWidth: "80vw" }} onMouseMove={handleMouseMove}>
         <img
           onLoad={autofetch}
           ref={imgEl}
           src={imageUrl}
-          alt="Annotated Image"
-          className="rounded shadow-md mb-4 w-full h-auto"
+          alt="Annotate this image"
+          className="rounded-lg shadow-md w-full h-auto"
           style={{ cursor: "crosshair" }}
         />
         <div
@@ -228,7 +253,7 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
           style={{ zIndex: 10 }}
         >
           <div
-            className="absolute bg-red-500"
+            className="absolute bg-blue-500 opacity-50"
             style={{
               width: "1px",
               height: "100%",
@@ -237,7 +262,7 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
             }}
           ></div>
           <div
-            className="absolute bg-red-500"
+            className="absolute bg-blue-500 opacity-50"
             style={{
               width: "100%",
               height: "1px",
@@ -245,7 +270,14 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
               left: 0,
             }}
           ></div>
+          <div className="absolute bottom-2 right-2 bg-white bg-opacity-75 px-2 py-1 rounded text-sm text-blue-800">
+            <Crosshair className="inline-block mr-1" size={14} />
+            {mouseCoords.x.toFixed(0)}, {mouseCoords.y.toFixed(0)}
+          </div>
         </div>
+      </div>
+      <div className="mt-4 text-blue-700 text-sm">
+        Total annotations: {annotations.length}
       </div>
     </div>
   );

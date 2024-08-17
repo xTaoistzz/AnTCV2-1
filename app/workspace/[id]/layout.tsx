@@ -9,11 +9,13 @@ interface SidebarLayoutProps {
 
 const SidebarLayout = ({ children }: SidebarLayoutProps) => {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-800">
+    <div className="flex flex-col min-h-screen bg-blue-50">
       <Navbar />
-      <div className="flex flex-1 mt-24">
+      <div className="flex flex-1 mt-16">
         <Sidebar />
-        <main className="flex-1 p-4 bg-gray-900">{children}</main>
+        <main className="flex-1 p-6 bg-white rounded-tl-3xl shadow-xl">
+          {children}
+        </main>
       </div>
     </div>
   );

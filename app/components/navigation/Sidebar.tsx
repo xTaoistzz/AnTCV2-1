@@ -1,92 +1,154 @@
 "use client";
 import { useState, useEffect } from "react";
-import { IoMdArrowDropleft, IoMdArrowDropright } from "react-icons/io";
-import SidebarMenu from "./Menu"; // Import SidebarMenu
+import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
+import SidebarMenu from "./Menu";
 import { useParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Sidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [ringColor, setRingColor] = useState("ring-gray-500"); // Default ring color
+  const [projectData, setProjectData] = useState<{
+    imageUrl: string | null;
+    name: string;
+    description: string;
+    type: string;
+  }>({
+    imageUrl: null,
+    name: "Loading...",
+    description: "Please wait...",
+    type: "default"
+  });
   const params = useParams<{ id: string }>();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const updateRingColor = () => {
-    const type = localStorage.getItem("Type");
-    const color = type === "classification" ? "ring-red-500" 
-                : type === "detection" ? "ring-yellow-500"
-                : type === "segmentation" ? "ring-blue-500"
-                : "ring-gray-500"; // Default ring color
-    setRingColor(color);
-  };
-
-  const handleStorageChange = (event: StorageEvent) => {
-    if (event.key === "Type") {
-      updateRingColor();
+  const getRingColor = (type: string) => {
+    switch (type) {
+      case "classification":
+        return "ring-blue-500";
+      case "detection":
+        return "ring-green-500";
+      case "segmentation":
+        return "ring-purple-500";
+      default:
+        return "ring-gray-300";
     }
   };
 
   useEffect(() => {
-    const fetchImage = async () => {
+    const fetchProjectData = async () => {
       if (params.id) {
         try {
-          const response = await fetch(`${process.env.ORIGIN_URL}/getImg`, {
+          // Fetch project details
+          const detailsResponse = await fetch(`${process.env.ORIGIN_URL}/getProjectDetails`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ idproject: params.id }),
             credentials: "include",
           });
 
-          if (response.ok) {
-            const data = await response.json();
-            setImageUrl(`${process.env.ORIGIN_URL}/img/${params.id}/thumbs/${data.imgName}`); // Assuming the response contains the image name as imgName
-          } else {
-            console.error("Failed to fetch image");
+          if (detailsResponse.ok) {
+            const details = await detailsResponse.json();
+            setProjectData(prev => ({
+              ...prev,
+              name: details.name,
+              description: details.description,
+              type: details.type
+            }));
+          }
+
+          // Fetch project image
+          const imageResponse = await fetch(`${process.env.ORIGIN_URL}/getImg`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idproject: params.id }),
+            credentials: "include",
+          });
+
+          if (imageResponse.ok) {
+            const imageData = await imageResponse.json();
+            setProjectData(prev => ({
+              ...prev,
+              imageUrl: `${process.env.ORIGIN_URL}/img/${params.id}/thumbs/${imageData.imgName}`
+            }));
           }
         } catch (error) {
-          console.error("An error occurred while fetching the image:", error);
+          console.error("An error occurred while fetching project data:", error);
         }
       }
     };
 
-    fetchImage();
-    updateRingColor();
+    fetchProjectData();
 
-    // Listen for changes to localStorage
+    // Listen for changes in localStorage
+    const handleStorageChange = () => {
+      const type = localStorage.getItem("Type") || "default";
+      setProjectData(prev => ({ ...prev, type }));
+    };
+
     window.addEventListener("storage", handleStorageChange);
-
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [params.id]);
 
   return (
-    <div className="flex bg-gray-900">
-      {isSidebarOpen && (
-        <aside className="flex flex-col relative bg-gray-800 p-4 text-white">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt="Project Icon"
-              className={`w-32 h-32 object-cover mb-4 rounded-lg ring-4 ${ringColor}`}
-            />
-          ) : (
-            <div className="w-32 h-32 bg-gray-700 mb-4 flex items-center justify-center">
-              {/* Placeholder or loading indicator */}
-              <p>Loading...</p>
+    <div className="flex h-screen">
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.aside
+            initial={{ width: 0 }}
+            animate={{ width: 300 }}
+            exit={{ width: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col bg-white text-blue-800 shadow-lg"
+          >
+            <div className="p-6 bg-blue-50">
+              <div className="flex items-center justify-center mb-6">
+                {projectData.imageUrl ? (
+                  <motion.img
+                    src={projectData.imageUrl}
+                    alt="Project Icon"
+                    className={`w-24 h-24 object-cover rounded-full ring-4 ${getRingColor(projectData.type)} shadow-lg`}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                  />
+                ) : (
+                  <div className="w-24 h-24 bg-blue-200 rounded-full flex items-center justify-center">
+                    <p className="text-xl font-semibold text-blue-600">Loading...</p>
+                  </div>
+                )}
+              </div>
+              <h2 className="text-2xl font-bold text-center mb-2">{projectData.name}</h2>
+              <p className="text-sm text-blue-600 text-center mb-4">{projectData.description}</p>
+              <div className="text-center">
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                  projectData.type === "classification" ? "bg-blue-100 text-blue-800" :
+                  projectData.type === "detection" ? "bg-green-100 text-green-800" :
+                  projectData.type === "segmentation" ? "bg-purple-100 text-purple-800" :
+                  "bg-gray-100 text-gray-800"
+                }`}>
+                  {projectData.type.charAt(0).toUpperCase() + projectData.type.slice(1)}
+                </span>
+              </div>
             </div>
-          )}
-          <SidebarMenu />
-        </aside>
-      )}
-      <button
-        className="-right-8 top-1/2 transform text-white focus:outline-none bg-gray-700 p-2 rounded-r-lg"
+            <div className="flex-grow overflow-y-auto">
+              <SidebarMenu />
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+      <motion.button
+        className={`self-center ${
+          isSidebarOpen ? "-ml-4" : "ml-4"
+        } z-10 bg-blue-500 text-white p-2 rounded-full focus:outline-none hover:bg-blue-600 transition-all duration-300 shadow-lg`}
         onClick={toggleSidebar}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
       >
-        {isSidebarOpen ? <IoMdArrowDropleft /> : <IoMdArrowDropright />}
-      </button>
+        {isSidebarOpen ? <IoChevronBackOutline size={24} /> : <IoChevronForwardOutline size={24} />}
+      </motion.button>
     </div>
   );
 };
