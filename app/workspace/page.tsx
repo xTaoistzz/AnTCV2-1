@@ -196,7 +196,7 @@ export default function WorkspacePage() {
   }
 
   return (
-    <main className="bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 min-h-screen flex flex-col items-center">
+    <main className="pt-10 bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 min-h-screen flex flex-col items-center">
       <Navbar />
       <section className="p-6 w-full max-w-7xl mx-auto pt-20">
         <motion.h1 
