@@ -5,13 +5,15 @@ import SidebarMenu from "./Menu";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
+type AnnotationType = 'classification' | 'detection' | 'segmentation' | 'default';
+
 const Sidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [projectData, setProjectData] = useState<{
     imageUrl: string | null;
     name: string;
     description: string;
-    type: string;
+    type: AnnotationType;
   }>({
     imageUrl: null,
     name: "Loading...",
@@ -24,7 +26,7 @@ const Sidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const getRingColor = (type: string) => {
+  const getRingColor = (type: AnnotationType) => {
     switch (type) {
       case "classification":
         return "ring-blue-500";
@@ -55,7 +57,7 @@ const Sidebar = () => {
               ...prev,
               name: details.name,
               description: details.description,
-              type: details.type
+              type: details.type as AnnotationType
             }));
           }
 
@@ -82,14 +84,23 @@ const Sidebar = () => {
 
     fetchProjectData();
 
-    // Listen for changes in localStorage
+    const handleTypeChange = (event: CustomEvent<AnnotationType>) => {
+      const newType = event.detail;
+      setProjectData(prev => ({ ...prev, type: newType }));
+    };
+
     const handleStorageChange = () => {
-      const type = localStorage.getItem("Type") || "default";
+      const type = localStorage.getItem("Type") as AnnotationType || "default";
       setProjectData(prev => ({ ...prev, type }));
     };
 
+    window.addEventListener('typeChange', handleTypeChange as EventListener);
     window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener('typeChange', handleTypeChange as EventListener);
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, [params.id]);
 
   return (

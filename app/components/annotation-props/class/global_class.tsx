@@ -17,6 +17,8 @@ const Class = () => {
   const [editingClassId, setEditingClassId] = useState<string | null>(null);
   const [newLabel, setNewLabel] = useState("");
   const [type, setType] = useState<string | null>(null);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<string | null>(null);
   const params = useParams<{ id: string }>();
   const router = useRouter();
 
@@ -55,9 +57,14 @@ const Class = () => {
     fetchClass();
   };
 
-  const handleDelete = async (class_id: string) => {
+  const handleDeleteConfirmation = (class_id: string) => {
+    setClassToDelete(class_id);
+    setShowDeleteConfirmation(true);
+  };
+
+  const handleDelete = async () => {
     try {
-      if (type) {
+      if (type && classToDelete) {
         const response = await fetch(`${process.env.ORIGIN_URL}/delete/${type}/class/`, {
           method: "DELETE",
           headers: {
@@ -65,13 +72,16 @@ const Class = () => {
           },
           body: JSON.stringify({
             idproject: params.id,
-            class_id: class_id,
+            class_id: classToDelete,
           }),
           credentials: "include",
         });
         const res = await response.json()
         if (res.type === "success") {
-          fetchClass()
+          setShowDeleteConfirmation(false);
+          setClassToDelete(null);
+          // Fetch updated class data after successful deletion
+          await fetchClass();
           window.location.reload()
         }
       }
@@ -180,7 +190,7 @@ const Class = () => {
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => handleDelete(classItem.class_id)}
+                    onClick={() => handleDeleteConfirmation(classItem.class_id)}
                     className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-300"
                   >
                     <ImBin className="w-5 h-5" />
@@ -197,6 +207,28 @@ const Class = () => {
         idproject={params.id}
         onCreate={fetchClass}
       />
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg">
+            <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
+            <p>Are you sure you want to delete this class?</p>
+            <div className="mt-4 flex justify-end space-x-2">
+              <button
+                onClick={() => setShowDeleteConfirmation(false)}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

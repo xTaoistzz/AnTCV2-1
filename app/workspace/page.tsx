@@ -328,7 +328,7 @@ export default function WorkspacePage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-2xl font-semibold mb-4 text-blue-700"
             >
-              Shared Projects
+              Shared Project from Owner
             </motion.h2>
             <SharedProjects username={username} searchTerm={searchTerm} />
           </div>

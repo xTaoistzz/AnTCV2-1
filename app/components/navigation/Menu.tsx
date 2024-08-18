@@ -1,26 +1,35 @@
 "use client";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { FaClipboardList, FaUpload, FaPencilAlt, FaFileImport, FaFileExport, FaExchangeAlt } from "react-icons/fa";
+import { FaClipboardList, FaUpload, FaPencilAlt, FaFileImport, FaFileExport } from "react-icons/fa";
+
+type AnnotationType = 'classification' | 'detection' | 'segmentation' | null;
 
 const SidebarMenu = () => {
-    const router = useRouter();
     const params = useParams<{ id: string }>();
-    const [selectedType, setSelectedType] = useState<string | null>(null);
-    const [isChangeTypeOpen, setIsChangeTypeOpen] = useState(false);
+    const [selectedType, setSelectedType] = useState<AnnotationType>(null);
 
     useEffect(() => {
-        setSelectedType(localStorage.getItem("Type"));
-    }, [selectedType]);
+        const handleTypeChange = (event: CustomEvent<AnnotationType>) => {
+            const newType = event.detail;
+            setSelectedType(newType);
+        };
 
-    const handleSelectType = (type: string) => {
-        localStorage.setItem("Type", type);
-        setSelectedType(type);
-        setIsChangeTypeOpen(false);
-        router.push(`/workspace/${params.id}/${type}`);
-    };
+        // Initial set
+        const storedType = localStorage.getItem("Type") as AnnotationType;
+        if (storedType) {
+            setSelectedType(storedType);
+        }
+
+        // Listen for changes
+        window.addEventListener('typeChange', handleTypeChange as EventListener);
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('typeChange', handleTypeChange as EventListener);
+        };
+    }, []);
 
     const menuItems = [
         { name: "Classes", icon: <FaClipboardList />, link: `/${selectedType}` },
@@ -46,38 +55,6 @@ const SidebarMenu = () => {
                     </li>
                 ))}
             </ul>
-
-            <div className="pt-3">
-                <button
-                    onClick={() => setIsChangeTypeOpen(!isChangeTypeOpen)}
-                    className="flex items-center w-full py-2 px-4 rounded-lg hover:bg-blue-100 transition duration-300 text-blue-800"
-                >
-                    <FaExchangeAlt />
-                    <span className="ml-3">Change Type</span>
-                </button>
-                {isChangeTypeOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="mt-2 space-y-2"
-                    >
-                        {["classification", "detection", "segmentation"].map((type) => (
-                            <button
-                                key={type}
-                                className={`w-full p-2 rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${
-                                    selectedType === type
-                                        ? "bg-blue-600 text-white shadow-md"
-                                        : "bg-blue-100 hover:bg-blue-200 text-blue-800"
-                                }`}
-                                onClick={() => handleSelectType(type)}
-                            >
-                                {type.charAt(0).toUpperCase() + type.slice(1)}
-                            </button>
-                        ))}
-                    </motion.div>
-                )}
-            </div>
         </nav>
     );
 };

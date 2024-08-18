@@ -66,6 +66,10 @@ const Class = () => {
     [params.id]
   );
 
+  const handleImageDelete = (classIndex: string) => {
+    fetchImages(classIndex);
+  };
+
   const handleDeleteClass = async (classIndex: string) => {
     try {
       const response = await fetch(
@@ -314,6 +318,7 @@ const Class = () => {
                       onPageChange={handlePageChange}
                       totalImages={imageData[type.class_index]?.length || 0}
                       imagesPerPage={imagesPerPage}
+                      onImageDelete={handleImageDelete}
                     />
                   </motion.div>
                 )}
