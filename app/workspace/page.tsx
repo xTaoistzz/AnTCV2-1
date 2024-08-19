@@ -13,6 +13,7 @@ import ProgressBar from "../components/progress";  // Import the new ProgressBar
 import { IoMdPeople } from "react-icons/io";
 import { motion } from "framer-motion";
 import CheckLoad from "../check-loading/page";
+import { useRouter } from "next/navigation";
 
 interface Project {
   idproject: number;
@@ -35,6 +36,7 @@ export default function WorkspacePage() {
   const [isAddCollaboratorOpen, setIsAddCollaboratorOpen] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter()
   const [notification, setNotification] = useState<{
     message: string;
     type: "success" | "error" | null;
@@ -92,6 +94,8 @@ export default function WorkspacePage() {
         setUsername(data.username);
       } else {
         setError("Failed to fetch username");
+        router.push("/sign-in")
+        
       }
     } catch (error) {
       console.error("An error occurred while fetching the username:", error);
