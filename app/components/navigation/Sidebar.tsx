@@ -44,10 +44,10 @@ const Sidebar = () => {
       if (params.id) {
         try {
           // Fetch project details
-          const detailsResponse = await fetch(`${process.env.ORIGIN_URL}/getProjectDetails`, {
-            method: "POST",
+          const detailsResponse = await fetch(`${process.env.ORIGIN_URL}/project/${params.id}`, {
+            method: "GET",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ idproject: params.id }),
+            // body: JSON.stringify({ idproject: params.id }),
             credentials: "include",
           });
 
@@ -55,8 +55,8 @@ const Sidebar = () => {
             const details = await detailsResponse.json();
             setProjectData(prev => ({
               ...prev,
-              name: details.name,
-              description: details.description,
+              name: details.project.name,
+              description: details.project.description,
               type: details.type as AnnotationType
             }));
           }

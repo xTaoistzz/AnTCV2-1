@@ -7,11 +7,12 @@ interface Project {
   idproject: number;
   project_name: string;
   description: string;
+  type: string;
 }
 
 interface EditProjectProps {
   project: Project;
-  onSave: (updatedProject: Project) => void;
+  onSave: (updatedProject: Project) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -19,12 +20,12 @@ const EditProject: React.FC<EditProjectProps> = ({ project, onSave, onCancel }) 
   const [projectName, setProjectName] = useState(project.project_name);
   const [description, setDescription] = useState(project.description);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (projectName.trim() === '') {
       alert('Project name cannot be empty');
       return;
     }
-    onSave({ ...project, project_name: projectName, description });
+    await onSave({ ...project, project_name: projectName, description });
   };
 
   return (

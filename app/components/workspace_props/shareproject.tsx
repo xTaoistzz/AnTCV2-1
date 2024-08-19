@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { HiMiniPhoto } from "react-icons/hi2";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import ProgressBar from "../progress";  // Import ProgressBar component
 
 interface SharedProject {
   idproject: number;
   project_name: string;
   description: string;
+  owner: string;
 }
 
 interface SharedProjectsProps {
@@ -14,18 +16,25 @@ interface SharedProjectsProps {
   searchTerm: string;
 }
 
-const SharedProjects: React.FC<SharedProjectsProps> = ({ username, searchTerm }) => {
+const SharedProjects: React.FC<SharedProjectsProps> = ({
+  username,
+  searchTerm,
+}) => {
   const [sharedProjects, setSharedProjects] = useState<SharedProject[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<SharedProject[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [firstImgMap, setFirstImgMap] = useState<{ [key: number]: string }>({});
 
+  // ... (existing fetchSharedProjects and fetchFirstImages functions)
   const fetchSharedProjects = async () => {
     try {
-      const response = await fetch(`${process.env.ORIGIN_URL}/allProject/share`, {
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${process.env.ORIGIN_URL}/allProject/share`,
+        {
+          credentials: "include",
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -61,18 +70,20 @@ const SharedProjects: React.FC<SharedProjectsProps> = ({ username, searchTerm })
           imgMap[project.idproject] = img.imgName;
         }
       } catch (error) {
-        console.error(`Error fetching image for project ${project.idproject}:`, error);
+        console.error(
+          `Error fetching image for project ${project.idproject}:`,
+          error
+        );
       }
     }
     setFirstImgMap(imgMap);
   };
-
   useEffect(() => {
     fetchSharedProjects();
   }, []);
 
   useEffect(() => {
-    const filtered = sharedProjects.filter(project =>
+    const filtered = sharedProjects.filter((project) =>
       project.project_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredProjects(filtered);
@@ -117,14 +128,16 @@ const SharedProjects: React.FC<SharedProjectsProps> = ({ username, searchTerm })
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-blue-600 text-lg"
         >
-          {searchTerm ? "No shared projects match your search." : "No shared projects available. Projects shared with you will appear here."}
+          {searchTerm
+            ? "No shared projects match your search."
+            : "No shared projects available. Projects shared with you will appear here."}
         </motion.p>
       ) : (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="space-y-4"
+          className="space-y-6"
         >
           {filteredProjects.map((project, index) => (
             <motion.div
@@ -135,23 +148,31 @@ const SharedProjects: React.FC<SharedProjectsProps> = ({ username, searchTerm })
               className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300"
             >
               <Link href={`/workspace/${project.idproject}`}>
-                <div className="p-4">
+                <div className="p-6">
                   <div className="flex items-center mb-4">
                     {firstImgMap[project.idproject] ? (
                       <img
-                        src={`${process.env.ORIGIN_URL}/img/${project.idproject}/thumbs/${firstImgMap[project.idproject]}`}
+                        src={`${process.env.ORIGIN_URL}/img/${
+                          project.idproject
+                        }/thumbs/${firstImgMap[project.idproject]}`}
                         alt="Project Icon"
                         className="w-16 h-16 rounded-full object-cover mr-4"
                       />
                     ) : (
                       <HiMiniPhoto className="w-16 h-16 text-blue-400 mr-4" />
                     )}
-                    <div>
+                    <div className="flex-1">
                       <h2 className="text-xl font-semibold text-blue-800">
                         {project.project_name}
                       </h2>
                       <p className="text-blue-600">{project.description}</p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Owner: {project.owner}
+                      </p>
                     </div>
+                  </div>
+                  <div className="mt-4">
+                    <ProgressBar idproject={project.idproject} />
                   </div>
                 </div>
               </Link>

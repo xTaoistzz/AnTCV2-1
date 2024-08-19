@@ -9,6 +9,7 @@ import CreateProject from "../components/workspace_props/create";
 import EditProject from "../components/workspace_props/edit";
 import AddCollaborator from "../components/workspace_props/share";
 import SharedProjects from "../components/workspace_props/shareproject";
+import ProgressBar from "../components/progress";  // Import the new ProgressBar component
 import { IoMdPeople } from "react-icons/io";
 import { motion } from "framer-motion";
 import CheckLoad from "../check-loading/page";
@@ -17,6 +18,11 @@ interface Project {
   idproject: number;
   project_name: string;
   description: string;
+  type: string;
+  progress?: {
+    total: number;
+    process: number;
+  };
 }
 
 export default function WorkspacePage() {
@@ -44,9 +50,13 @@ export default function WorkspacePage() {
 
       if (response.ok) {
         const data = await response.json();
-        setProjects(data.project);
-        setFilteredProjects(data.project);
-        fetchFirstImages(data.project);
+        const projectsWithProgress = await Promise.all(data.project.map(async (project: Project) => {
+          const progress = await fetchProjectProgress(project);
+          return { ...project, progress };
+        }));
+        setProjects(projectsWithProgress);
+        setFilteredProjects(projectsWithProgress);
+        fetchFirstImages(projectsWithProgress);
       } else {
         setError("Failed to fetch projects");
       }
@@ -56,6 +66,20 @@ export default function WorkspacePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchProjectProgress = async (project: Project) => {
+    try {
+      const response = await fetch(`${process.env.ORIGIN_URL}/${project.type}/getProcess/${project.idproject}`, {
+        credentials: "include",
+      });
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (error) {
+      console.error(`Error fetching progress for project ${project.idproject}:`, error);
+    }
+    return null;
   };
 
   const fetchUsername = async () => {
@@ -290,6 +314,9 @@ export default function WorkspacePage() {
                               {project.project_name}
                             </h2>
                             <p className="text-blue-600">{project.description}</p>
+                              <ProgressBar 
+                                idproject={project.idproject}
+                              />
                           </div>
                         </div>
                       </div>
@@ -308,7 +335,7 @@ export default function WorkspacePage() {
                         <ImBin className="w-5 h-5" />
                       </button>
                       <button
-                        onClick={() => handleOpenAddCollaborator(project.idproject)}
+                      onClick={() => handleOpenAddCollaborator(project.idproject)}
                         className='bg-green-500 text-white rounded-full hover:bg-green-600 transition duration-300 p-2'
                       >
                         <IoMdPeople className='w-5 h-5' />
@@ -328,12 +355,13 @@ export default function WorkspacePage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-2xl font-semibold mb-4 text-blue-700"
             >
-              Shared Project from Owner
+              Shared Projects from Owners
             </motion.h2>
             <SharedProjects username={username} searchTerm={searchTerm} />
           </div>
         </div>
 
+        {/* Modals */}
         <CreateProject
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
@@ -354,6 +382,15 @@ export default function WorkspacePage() {
             onClose={handleCloseAddCollaborator}
             onCollaboratorAdded={handleCollaboratorAdded}
           />
+        )}
+
+        {/* Notification */}
+        {notification && (
+          <div className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg ${
+            notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+          } text-white`}>
+            {notification.message}
+          </div>
         )}
       </section>
     </main>
