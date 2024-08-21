@@ -264,8 +264,8 @@ const Tab: React.FC<TabProps> = ({ initialType = 'classification' }) => {
   };
 
   return (
-    <div className="mb-8">
-      <div className="bg-white p-4 rounded-xl shadow-lg">
+    <div className="">
+      <div className="bg-white  rounded-xl shadow-lg">
         <div className="flex space-x-4">
           {renderTab('classification')}
           {renderTab('detection')}

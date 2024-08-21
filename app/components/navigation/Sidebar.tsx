@@ -1,4 +1,5 @@
 "use client";
+import { HiMiniPhoto } from "react-icons/hi2";
 import { useState, useEffect } from "react";
 import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
 import SidebarMenu from "./Menu";
@@ -127,7 +128,7 @@ const Sidebar = () => {
                   />
                 ) : (
                   <div className="w-24 h-24 bg-blue-200 rounded-full flex items-center justify-center">
-                    <p className="text-xl font-semibold text-blue-600">Loading...</p>
+                    <HiMiniPhoto className="w-20 h-20 text-blue-400" />
                   </div>
                 )}
               </div>

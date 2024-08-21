@@ -211,49 +211,50 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
   };
 
   return (
-    <div className="flex flex-col items-center bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 p-8 rounded-lg shadow-lg">
-      <div className="self-end flex gap-2 mb-2">
+    <div className="flex flex-col items-center bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 p-4 sm:p-8 rounded-lg shadow-lg">
+      <div className="self-end flex flex-wrap gap-2 mb-2">
         <button
           onClick={sendBoundingBoxToBackend}
-          className="bg-blue-600 text-white px-4 py-2 rounded-full shadow-md hover:bg-blue-700 transition duration-300 flex items-center"
+          className="bg-blue-600 text-white px-3 py-1 sm:px-4 sm:py-2 text-sm sm:text-base rounded-full shadow-md hover:bg-blue-700 transition duration-300 flex items-center"
           disabled={isSaving}
         >
           {isSaving ? (
             <>
-              <RefreshCw className="animate-spin mr-2" size={18} />
+              <RefreshCw className="animate-spin mr-1 sm:mr-2" size={16} />
               Saving...
             </>
           ) : (
             <>
-              <Save className="mr-2" size={18} />
+              <Save className="mr-1 sm:mr-2" size={16} />
               Save
             </>
           )}
         </button>
         <button
           onClick={fetchBoundingBoxes}
-          className="bg-blue-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-blue-600 transition duration-300 flex items-center"
+          className="bg-blue-500 text-white px-3 py-1 sm:px-4 sm:py-2 text-sm sm:text-base rounded-full shadow-md hover:bg-blue-600 transition duration-300 flex items-center"
           disabled={isRefreshing}
         >
-          <RefreshCw className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} size={18} />
+          <RefreshCw className={`mr-1 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} size={16} />
           Refresh
         </button>
       </div>
-      <div className="relative max-w-full" style={{ maxWidth: "80vw" }} onMouseMove={handleMouseMove}>
+      <div className="relative w-full max-w-4xl mx-auto cursor-crosshair" onMouseMove={handleMouseMove}>      
         <img
           onLoad={autofetch}
           ref={imgEl}
           src={imageUrl}
           alt="Annotate this image"
-          className="rounded-lg shadow-md w-full h-auto"
-          style={{ cursor: "crosshair" }}
+          className="rounded-lg shadow-md object-contain w-full h-auto max-h-[70vh]"
+
         />
+
         <div
           className="absolute left-0 top-0 w-full h-full pointer-events-none"
           style={{ zIndex: 10 }}
         >
           <div
-            className="absolute bg-blue-500 opacity-50"
+            className="absolute bg-blue-500 opacity-100"
             style={{
               width: "1px",
               height: "100%",
@@ -262,7 +263,7 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
             }}
           ></div>
           <div
-            className="absolute bg-blue-500 opacity-50"
+            className="absolute bg-blue-500 opacity-100"
             style={{
               width: "100%",
               height: "1px",
@@ -270,7 +271,7 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
               left: 0,
             }}
           ></div>
-          <div className="absolute bottom-2 right-2 bg-white bg-opacity-75 px-2 py-1 rounded text-sm text-blue-800">
+          <div className="absolute bottom-2 right-2 bg-white bg-opacity-75 px-2 py-1 rounded text-xs sm:text-sm text-blue-800">
             <Crosshair className="inline-block mr-1" size={14} />
             {mouseCoords.x.toFixed(0)}, {mouseCoords.y.toFixed(0)}
           </div>
