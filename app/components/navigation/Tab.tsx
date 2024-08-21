@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tag, ImageIcon, Layers, Settings, X, Loader } from 'lucide-react';
+import { Tag, ImageIcon, Layers, Settings, X, Loader, AlertTriangle } from 'lucide-react';
 
 type AnnotationType = 'classification' | 'detection' | 'segmentation';
 
@@ -18,6 +18,13 @@ interface ModalProps {
 
 interface LoadingProps {
   isLoading: boolean;
+}
+
+interface ConfirmModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  message: string;
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, message, isError }) => (
@@ -82,15 +89,62 @@ const Loading: React.FC<LoadingProps> = ({ isLoading }) => (
   </AnimatePresence>
 );
 
+const ConfirmModal: React.FC<ConfirmModalProps> = ({ isOpen, onClose, onConfirm, message }) => (
+  <AnimatePresence>
+    {isOpen && (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 border-4 border-yellow-500"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center mb-4">
+            <AlertTriangle className="text-yellow-500 mr-2" size={24} />
+            <h3 className="text-lg font-semibold text-gray-800">Confirm Conversion</h3>
+          </div>
+          <p className="text-gray-700 mb-4">{message}</p>
+          <div className="flex justify-end space-x-2">
+            <button
+              className="px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400 transition-colors"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button
+              className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+              onClick={() => {
+                onConfirm();
+                onClose();
+              }}
+            >
+              Confirm
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
 const Tab: React.FC<TabProps> = ({ initialType = 'classification' }) => {
   const router = useRouter();
   const params = useParams();
   const [selectedType, setSelectedType] = useState<AnnotationType>(initialType);
   const [showDropdown, setShowDropdown] = useState<AnnotationType | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [conversionType, setConversionType] = useState<{ from: AnnotationType; to: AnnotationType } | null>(null);
 
   useEffect(() => {
     const storedType = localStorage.getItem('Type') as AnnotationType;
@@ -106,7 +160,18 @@ const Tab: React.FC<TabProps> = ({ initialType = 'classification' }) => {
     window.dispatchEvent(new CustomEvent('typeChange', { detail: type }));
   };
 
-  const handleConvert = async (from: AnnotationType, to: AnnotationType) => {
+  const handleConfirmConvert = () => {
+    if (conversionType) {
+      performConversion(conversionType.from, conversionType.to);
+    }
+  };
+
+  const handleConvert = (from: AnnotationType, to: AnnotationType) => {
+    setConversionType({ from, to });
+    setShowConfirmModal(true);
+  };
+
+  const performConversion = async (from: AnnotationType, to: AnnotationType) => {
     setIsLoading(true);
     try {
       const response = await fetch(`${process.env.ORIGIN_URL}/convert/${from}`, {
@@ -215,6 +280,12 @@ const Tab: React.FC<TabProps> = ({ initialType = 'classification' }) => {
         isError={isError}
       />
       <Loading isLoading={isLoading} />
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmConvert}
+        message={`Are you sure you want to convert from ${conversionType?.from} to ${conversionType?.to}? This action cannot be undone.`}
+      />
     </div>
   );
 };
