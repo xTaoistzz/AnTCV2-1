@@ -1,8 +1,7 @@
-"use client";
 import React, { useEffect, useRef, useState } from "react";
 import { Annotorious } from "@recogito/annotorious";
 import "@recogito/annotorious/dist/annotorious.min.css";
-import { Save, RefreshCw, Crosshair } from 'lucide-react';
+import { Save, RefreshCw, Crosshair, ZoomIn, ZoomOut } from 'lucide-react';
 
 function ImageWithPolygon({ idproject, idsegmentation, imageUrl }) {
   const imgEl = useRef(null);
@@ -12,6 +11,7 @@ function ImageWithPolygon({ idproject, idsegmentation, imageUrl }) {
   const [mouseCoords, setMouseCoords] = useState({ x: 0, y: 0 });
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   const fetchClassNames = async () => {
     try {
@@ -179,9 +179,20 @@ function ImageWithPolygon({ idproject, idsegmentation, imageUrl }) {
     setMouseCoords({ x, y });
   };
 
+  const handleZoomToggle = () => {
+    setIsZoomed(!isZoomed);
+    if (anno) {
+      // Force Annotorious to redraw annotations after zoom
+      setTimeout(() => {
+        const currentAnnotations = anno.getAnnotations();
+        anno.setAnnotations(currentAnnotations);
+      }, 100);
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 p-4 sm:p-8 rounded-lg shadow-lg">
-      <div className="self-end flex flex-wrap gap-2 mb-2">
+    <div className={`flex flex-col items-center bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 p-4 sm:p-8 rounded-lg shadow-lg ${isZoomed ? 'fixed inset-0 z-50 overflow-y-auto overflow-x-hidden' : ''}`}>
+      <div className="self-end flex flex-wrap gap-2 mb-2 sticky top-0 z-10 bg-opacity-80 bg-blue-100 p-2 rounded-lg">
         <button
           onClick={sendPolygonToBackend}
           className="bg-blue-600 text-white px-3 py-1 sm:px-4 sm:py-2 text-sm sm:text-base rounded-full shadow-md hover:bg-blue-700 transition duration-300 flex items-center"
@@ -207,14 +218,33 @@ function ImageWithPolygon({ idproject, idsegmentation, imageUrl }) {
           <RefreshCw className={`mr-1 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} size={16} />
           Refresh
         </button>
+        <button
+          onClick={handleZoomToggle}
+          className="bg-green-500 text-white px-3 py-1 sm:px-4 sm:py-2 text-sm sm:text-base rounded-full shadow-md hover:bg-green-600 transition duration-300 flex items-center"
+        >
+          {isZoomed ? (
+            <>
+              <ZoomOut className="mr-1 sm:mr-2" size={16} />
+              Exit Zoom
+            </>
+          ) : (
+            <>
+              <ZoomIn className="mr-1 sm:mr-2" size={16} />
+              Zoom
+            </>
+          )}
+        </button>
       </div>
-      <div className="relative w-full max-w-4xl mx-auto cursor-crosshair" onMouseMove={handleMouseMove}>      
+      <div 
+        className={`relative cursor-crosshair ${isZoomed ? 'w-full' : 'w-full max-w-4xl mx-auto'}`} 
+        onMouseMove={handleMouseMove}
+      >      
         <img
           onLoad={autofetch}
           ref={imgEl}
           src={imageUrl}
           alt="Annotate this image"
-          className="rounded-lg shadow-md object-contain w-full h-auto max-h-[70vh]"
+          className={`rounded-lg shadow-md ${isZoomed ? 'w-full h-auto' : 'object-contain w-full h-auto max-h-[70vh]'}`}
         />
 
         <div

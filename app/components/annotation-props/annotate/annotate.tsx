@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
@@ -10,19 +9,21 @@ import {
   Trash2,
   ChevronUp,
   ChevronDown,
+  Check,
 } from "lucide-react";
+import DeleteImageCon from "./DeleteImageCon";
 
-// ... (previous imports and interface definitions remain the same)
 interface ImageData {
   image_path: string;
   iddetection: string;
   idsegmentation: string;
+  bbox?: number;
+  polygon?: number;
 }
 
 const IMAGE_PER_PAGE = 12;
 
 export default function Annotate() {
-  // ... (previous state definitions and functions remain the same)
   const params = useParams<{ id: string }>();
   const idproject = params.id;
   const Detection = dynamic(() => import("./detection"), { ssr: false });
@@ -37,8 +38,9 @@ export default function Annotate() {
   const type =
     typeof window !== "undefined" ? localStorage.getItem("Type") : null;
   const [isGalleryOpen, setGalleryOpen] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState<{ name: string; index: number } | null>(null);
 
-  // ... (keep all the existing functions like fetchExternalImages, send_id_compared, etc.)
   const fetchExternalImages = useCallback(async () => {
     try {
       const res = await fetch(
@@ -128,7 +130,14 @@ export default function Annotate() {
     setGalleryOpen(!isGalleryOpen);
   };
 
-  const handleDeleteImage = async (imgName: string, index: number) => {
+  const handleDeleteConfirmation = (imgName: string, index: number) => {
+    setImageToDelete({ name: imgName, index: index });
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteImage = async () => {
+    if (!imageToDelete) return;
+
     try {
       const res = await fetch(`${process.env.ORIGIN_URL}/delete/image`, {
         method: "DELETE",
@@ -138,28 +147,28 @@ export default function Annotate() {
         credentials: "include",
         body: JSON.stringify({
           idproject,
-          imgName,
+          imgName: imageToDelete.name,
           type,
-          index,
+          index: imageToDelete.index,
         }),
       });
 
       if (res.ok) {
         // Update the state to remove the deleted image from the gallery
-        const newUrls = allUrl.filter((url) => !url.includes(imgName));
+        const newUrls = allUrl.filter((url) => !url.includes(imageToDelete.name));
         setUrl(newUrls);
 
         // Update activeUrl if necessary
-        if (activeUrl?.includes(imgName)) {
+        if (activeUrl?.includes(imageToDelete.name)) {
           setActiveUrl(newUrls.length > 0 ? newUrls[0] : null);
         }
 
         // Update idDetection or idSegmentation if necessary
         if (type === "detection") {
-          setAllData(allData.filter((img) => img.image_path !== imgName));
+          setAllData(allData.filter((img) => img.image_path !== imageToDelete.name));
           setIdDetection(newUrls.length > 0 ? allData[0].iddetection : null);
         } else if (type === "segmentation") {
-          setAllData(allData.filter((img) => img.image_path !== imgName));
+          setAllData(allData.filter((img) => img.image_path !== imageToDelete.name));
           setIdSegmentation(
             newUrls.length > 0 ? allData[0].idsegmentation : null
           );
@@ -170,7 +179,10 @@ export default function Annotate() {
     } catch (error) {
       console.error("Error deleting image:", error);
     }
+    setShowDeleteModal(false);
+    setImageToDelete(null);
   };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -178,7 +190,6 @@ export default function Annotate() {
       exit={{ opacity: 0 }}
       className="bg-gradient-to-br from-blue-50 to-blue-100"
     >
-      {/* ... (previous JSX for no images and active image navigation remains the same) */}
       {!activeUrl && (
         <motion.div
           initial={{ y: -20, opacity: 0 }}
@@ -303,36 +314,54 @@ export default function Annotate() {
               className="overflow-hidden"
             >
               <div className="flex overflow-x-auto p-2">
-                {displayImages.map((url, index) => (
-                  <motion.div
-                    key={index}
-                    className="relative mx-2"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <img
-                      src={url}
-                      className={`cursor-pointer h-24 w-24 rounded-md shadow-md transition-all duration-300 ${
-                        url === activeUrl ? "ring-4 ring-blue-500" : ""
-                      }`}
-                      onClick={() => send_id_compared(url)}
-                    />
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() =>
-                        handleDeleteImage(url.split("/").pop() || "", index)
-                      }
-                      className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-700 focus:outline-none"
+                {displayImages.map((url, index) => {
+                  const image_path = url.split("/").pop();
+                  const imageData = allData.find((img) => img.image_path === image_path);
+                  const isAnnotated = imageData && (
+                    (type === "detection" && imageData.bbox === 1) ||
+                    (type === "segmentation" && imageData.polygon === 1)
+                  );
+
+                  return (
+                    <motion.div
+                      key={index}
+                      className="relative mx-2"
+                      whileHover={{ scale: 1.05 }}
                     >
-                      <Trash2 size={16} />
-                    </motion.button>
-                  </motion.div>
-                ))}
+                      <img
+                        src={url}
+                        className={`cursor-pointer h-24 w-24 rounded-md shadow-md transition-all duration-300 ${
+                          url === activeUrl ? "ring-4 ring-blue-500" : ""
+                        }`}
+                        onClick={() => send_id_compared(url)}
+                      />
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => handleDeleteConfirmation(url.split("/").pop() || "", index)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-700 focus:outline-none"
+                      >
+                        <Trash2 size={16} />
+                      </motion.button>
+                      {isAnnotated && (
+                        <div className="absolute bottom-0 left-0 bg-green-500 text-white p-1 rounded-bl-md">
+                          <Check size={16} />
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </motion.div>
+
+      <DeleteImageCon
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteImage}
+      />
     </motion.div>
   );
 }

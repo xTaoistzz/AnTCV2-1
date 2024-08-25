@@ -9,11 +9,12 @@ import CreateProject from "../components/workspace_props/create";
 import EditProject from "../components/workspace_props/edit";
 import AddCollaborator from "../components/workspace_props/share";
 import SharedProjects from "../components/workspace_props/shareproject";
-import ProgressBar from "../components/progress";  // Import the new ProgressBar component
+import ProgressBar from "../components/progress";
 import { IoMdPeople } from "react-icons/io";
 import { motion } from "framer-motion";
 import CheckLoad from "../check-loading/page";
 import { useRouter } from "next/navigation";
+import ConfirmDeleteProject from "../components/workspace_props/delete";
 
 interface Project {
   idproject: number;
@@ -43,6 +44,11 @@ export default function WorkspacePage() {
   } | null>(null);
   const [firstImgMap, setFirstImgMap] = useState<{ [key: number]: string }>({});
   const [username, setUsername] = useState<string>("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; projectId: number | null; projectName: string }>({
+    isOpen: false,
+    projectId: null,
+    projectName: "",
+  });
 
   const fetchProjects = async () => {
     try {
@@ -95,7 +101,6 @@ export default function WorkspacePage() {
       } else {
         setError("Failed to fetch username");
         router.push("/sign-in")
-        
       }
     } catch (error) {
       console.error("An error occurred while fetching the username:", error);
@@ -173,25 +178,41 @@ export default function WorkspacePage() {
     }
   };
 
-  const handleDeleteProject = async (id: number) => {
+  const handleDeleteConfirmation = (id: number, name: string) => {
+    setDeleteConfirmation({ isOpen: true, projectId: id, projectName: name });
+  };
+
+  const handleDeleteProject = async () => {
+    if (!deleteConfirmation.projectId) return;
+
     try {
       const response = await fetch(`${process.env.ORIGIN_URL}/delete/project`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ idproject: id }),
+        body: JSON.stringify({ idproject: deleteConfirmation.projectId }),
         credentials: "include",
       });
 
       if (response.ok) {
-        setProjects(projects.filter((p) => p.idproject !== id));
+        setProjects(projects.filter((p) => p.idproject !== deleteConfirmation.projectId));
         fetchProjects();
+        setNotification({
+          message: "Project deleted successfully!",
+          type: "success",
+        });
       } else {
-        console.error("Failed to delete project");
+        throw new Error("Failed to delete project");
       }
     } catch (error) {
       console.error("An error occurred while deleting the project:", error);
+      setNotification({
+        message: "Error deleting project. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setDeleteConfirmation({ isOpen: false, projectId: null, projectName: "" });
     }
   };
 
@@ -333,13 +354,13 @@ export default function WorkspacePage() {
                         <FaEdit className="w-5 h-5" />
                       </button>
                       <button
-                        onClick={() => handleDeleteProject(project.idproject)}
+                        onClick={() => handleDeleteConfirmation(project.idproject, project.project_name)}
                         className="bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-300 p-2"
                       >
                         <ImBin className="w-5 h-5" />
                       </button>
                       <button
-                      onClick={() => handleOpenAddCollaborator(project.idproject)}
+                        onClick={() => handleOpenAddCollaborator(project.idproject)}
                         className='bg-green-500 text-white rounded-full hover:bg-green-600 transition duration-300 p-2'
                       >
                         <IoMdPeople className='w-5 h-5' />
@@ -351,8 +372,8 @@ export default function WorkspacePage() {
             )}
           </div>
 
-          {/* Shared Projects */}
-          <div className="w-full md:w-1/2">
+{/* Shared Projects */}
+<div className="w-full md:w-1/2">
             <motion.h2 
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -387,6 +408,13 @@ export default function WorkspacePage() {
             onCollaboratorAdded={handleCollaboratorAdded}
           />
         )}
+
+        <ConfirmDeleteProject
+          isOpen={deleteConfirmation.isOpen}
+          projectName={deleteConfirmation.projectName}
+          onConfirm={handleDeleteProject}
+          onCancel={() => setDeleteConfirmation({ isOpen: false, projectId: null, projectName: "" })}
+        />
 
         {/* Notification */}
         {notification && (

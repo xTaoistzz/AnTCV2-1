@@ -13,6 +13,41 @@ interface Label {
   class_label: string;
 }
 
+interface ConfirmDeleteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  className: string;
+}
+
+const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ isOpen, onClose, onConfirm, className }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg">
+        <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
+        <p>Are you sure you want to delete the class "{className}"?</p>
+        <p>This action cannot be undone.</p>
+        <div className="mt-4 flex justify-end space-x-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Class = () => {
   const [typedata, setTypedata] = useState<Label[]>([]);
   const [showCreate, setShowCreate] = useState(false);
@@ -24,6 +59,8 @@ const Class = () => {
   const [imagesPerPage] = useState(18);
   const [editingClassIndex, setEditingClassIndex] = useState<string | null>(null);
   const [editedLabel, setEditedLabel] = useState<string>("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<Label | null>(null);
   const params = useParams<{ id: string }>();
 
   const fetchClass = useCallback(async () => {
@@ -70,7 +107,14 @@ const Class = () => {
     fetchImages(classIndex);
   };
 
-  const handleDeleteClass = async (classIndex: string) => {
+  const handleDeleteConfirmation = (classToDelete: Label) => {
+    setClassToDelete(classToDelete);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteClass = async () => {
+    if (!classToDelete) return;
+
     try {
       const response = await fetch(
         `${process.env.ORIGIN_URL}/classification/deleteClass`,
@@ -81,7 +125,7 @@ const Class = () => {
           },
           body: JSON.stringify({
             idproject: params.id,
-            index: classIndex,
+            index: classToDelete.class_index,
           }),
           credentials: "include",
         }
@@ -89,16 +133,16 @@ const Class = () => {
 
       if (response.ok) {
         setTypedata((prev) =>
-          prev.filter((cls) => cls.class_index !== classIndex)
+          prev.filter((cls) => cls.class_index !== classToDelete.class_index)
         );
         setImageData((prev) => {
           const updated = { ...prev };
-          delete updated[classIndex];
+          delete updated[classToDelete.class_index];
           return updated;
         });
         setCurrentPage((prev) => {
           const updated = { ...prev };
-          delete updated[classIndex];
+          delete updated[classToDelete.class_index];
           return updated;
         });
       } else {
@@ -107,6 +151,9 @@ const Class = () => {
     } catch (error) {
       console.error("Error deleting class:", error);
     }
+
+    setShowDeleteModal(false);
+    setClassToDelete(null);
   };
 
   const handleEditStart = (classIndex: string, currentLabel: string) => {
@@ -286,7 +333,7 @@ const Class = () => {
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => handleDeleteClass(type.class_index)}
+                    onClick={() => handleDeleteConfirmation(type)}
                     className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-300"
                   >
                     <ImBin className="w-5 h-5" />
@@ -332,6 +379,12 @@ const Class = () => {
         onClose={handleCloseCreate}
         idproject={params.id}
         onCreate={fetchClass}
+      />
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteClass}
+        className={classToDelete?.class_label || ""}
       />
     </main>
   );
