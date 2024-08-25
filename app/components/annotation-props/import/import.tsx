@@ -2,13 +2,14 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, AlertCircle, CheckCircle, Info } from 'lucide-react';
 
 const ImportDataset = () => {
   const [type, setType] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<{ message: string; type: 'success' | 'error' | null } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
   const params = useParams<{ id: string }>();
 
   useEffect(() => {
@@ -50,6 +51,59 @@ const ImportDataset = () => {
     }
   };
 
+  const InfoModal = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={() => setShowInfoModal(false)}
+    >
+      <motion.div
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: -50, opacity: 0 }}
+        className="bg-white p-6 rounded-lg max-w-md"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-xl font-bold mb-4">YOLO Dataset Import Guide</h2>
+        <p className="mb-3">Please prepare your dataset as a ZIP file with the following structure:</p>
+        <pre className="bg-gray-100 p-3 rounded mb-3 text-sm">
+          {`dataset.zip
+├── images/
+│   ├── image1.jpg
+│   ├── image2.jpg
+│   └── ...
+├── labels/
+│   ├── image1.txt
+│   ├── image2.txt
+│   └── ...
+└── data.yaml`}
+        </pre>
+        <ul className="list-disc list-inside mb-3">
+          <li>The 'images' and 'labels' folders should contain corresponding files.</li>
+          <li>Each image in the 'images' folder should have a matching annotation file in the 'labels' folder.</li>
+          <li>The data.yaml file should follow the YOLO format, listing class indices and names.</li>
+        </ul>
+        <p className="mb-3">Example data.yaml content:</p>
+        <pre className="bg-gray-100 p-3 rounded mb-3 text-sm">
+          {`path: .
+train: train
+names:
+  0: class_name_1
+  1: class_name_2
+  ...`}
+        </pre>
+        <button 
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          onClick={() => setShowInfoModal(false)}
+        >
+          Close
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+
   return (
     <motion.main
       initial={{ opacity: 0 }}
@@ -85,33 +139,43 @@ const ImportDataset = () => {
             </label>
           </div>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleUpload}
-          disabled={!file || isUploading}
-          className={`w-full bg-blue-600 text-white py-2 px-4 rounded-lg ${
-            !file || isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
-          } transition duration-300 flex items-center justify-center`}
-        >
-          {isUploading ? (
-            <>
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="mr-2"
-              >
-                <Upload size={20} />
-              </motion.div>
-              Importing...
-            </>
-          ) : (
-            <>
-              <Upload size={20} className="mr-2" />
-              Import Dataset
-            </>
-          )}
-        </motion.button>
+        <div className="flex justify-between items-center mb-4">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleUpload}
+            disabled={!file || isUploading}
+            className={`flex-grow bg-blue-600 text-white py-2 px-4 rounded-lg ${
+              !file || isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+            } transition duration-300 flex items-center justify-center mr-2`}
+          >
+            {isUploading ? (
+              <>
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="mr-2"
+                >
+                  <Upload size={20} />
+                </motion.div>
+                Importing...
+              </>
+            ) : (
+              <>
+                <Upload size={20} className="mr-2" />
+                Import Dataset
+              </>
+            )}
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowInfoModal(true)}
+            className="bg-gray-200 text-gray-700 p-2 rounded-full hover:bg-gray-300 transition duration-300"
+          >
+            <Info size={24} />
+          </motion.button>
+        </div>
         <AnimatePresence>
           {uploadStatus && (
             <motion.div
@@ -132,6 +196,9 @@ const ImportDataset = () => {
           )}
         </AnimatePresence>
       </motion.div>
+      <AnimatePresence>
+        {showInfoModal && <InfoModal />}
+      </AnimatePresence>
     </motion.main>
   );
 };

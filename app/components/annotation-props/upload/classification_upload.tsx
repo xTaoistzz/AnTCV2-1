@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import React, { useCallback, useState, useEffect } from "react";
+import { useDropzone, FileRejection, DropEvent } from "react-dropzone";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaCloudUploadAlt, FaTimes, FaCheck } from "react-icons/fa";
+import { FaCloudUploadAlt, FaTimes, FaCheck, FaInfoCircle } from "react-icons/fa";
 
 interface DropzoneProps {
   class_index: string;
@@ -16,11 +16,21 @@ const Dropzone: React.FC<DropzoneProps> = ({ class_index }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | null } | null>(null);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' | null } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
+  const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
+    // Filter accepted files to only include images
+    const imageFiles = acceptedFiles.filter(file => file.type.startsWith('image/'));
+    setFiles(prevFiles => [...prevFiles, ...imageFiles]);
+
+    // Show notification for rejected files
+    if (fileRejections.length > 0 || acceptedFiles.length !== imageFiles.length) {
+      setNotification({
+        message: "Only image files (e.g., JPEG, PNG) are allowed. Some files were rejected.",
+        type: 'error'
+      });
+    }
   }, []);
 
   const removeFile = (file: File) => {
@@ -95,7 +105,11 @@ const Dropzone: React.FC<DropzoneProps> = ({ class_index }) => {
     }
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+    onDrop,
+    accept: {'image/*': ['.jpeg', '.jpg', '.png']},
+    multiple: true
+  });
 
   return (
     <motion.div
@@ -104,6 +118,14 @@ const Dropzone: React.FC<DropzoneProps> = ({ class_index }) => {
       exit={{ opacity: 0, y: -20 }}
       className="bg-white p-6 rounded-lg shadow-lg"
     >
+      <div className="mb-4 p-4 bg-blue-100 text-blue-800 rounded-lg flex items-start">
+        <FaInfoCircle className="mr-2 mt-1 flex-shrink-0" />
+        <p>
+          Please upload image files only (JPEG, PNG). Other file types will be rejected.
+          Maximum file size: 5MB per image.
+        </p>
+      </div>
+
       <div
         {...getRootProps()}
         className={`border-4 border-dashed ${
@@ -114,8 +136,8 @@ const Dropzone: React.FC<DropzoneProps> = ({ class_index }) => {
         <FaCloudUploadAlt className="text-5xl text-blue-500 mb-4" />
         <p className="text-blue-800 text-center">
           {isDragActive
-            ? "Drop the files here"
-            : "Drag 'n' drop some files here, or click to select files"}
+            ? "Drop the image files here"
+            : "Drag 'n' drop some image files here, or click to select files"}
         </p>
       </div>
 
@@ -126,7 +148,9 @@ const Dropzone: React.FC<DropzoneProps> = ({ class_index }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             className={`mb-4 p-4 rounded-lg ${
-              notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+              notification.type === 'success' ? 'bg-green-500' :
+              notification.type === 'error' ? 'bg-red-500' :
+              'bg-blue-500'
             } text-white flex items-center justify-between`}
           >
             <span>{notification.message}</span>
