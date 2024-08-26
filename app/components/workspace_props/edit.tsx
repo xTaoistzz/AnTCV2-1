@@ -24,7 +24,7 @@ const EditProject: React.FC<EditProjectProps> = ({ project, onSave, onCancel }) 
 
   const handleSave = async () => {
     if (projectName.trim() === '') {
-      alert('Project name cannot be empty');
+      setError('Project name cannot be empty');
       return;
     }
 

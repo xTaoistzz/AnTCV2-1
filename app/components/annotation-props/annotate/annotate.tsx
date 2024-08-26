@@ -10,6 +10,9 @@ import {
   ChevronUp,
   ChevronDown,
   Check,
+  Image as ImageIcon,
+  ArrowLeftCircle,
+  ArrowRightCircle,
 } from "lucide-react";
 import DeleteImageCon from "./DeleteImageCon";
 
@@ -39,7 +42,10 @@ export default function Annotate() {
     typeof window !== "undefined" ? localStorage.getItem("Type") : null;
   const [isGalleryOpen, setGalleryOpen] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [imageToDelete, setImageToDelete] = useState<{ name: string; index: number } | null>(null);
+  const [imageToDelete, setImageToDelete] = useState<{
+    name: string;
+    index: number;
+  } | null>(null);
 
   const fetchExternalImages = useCallback(async () => {
     try {
@@ -155,7 +161,9 @@ export default function Annotate() {
 
       if (res.ok) {
         // Update the state to remove the deleted image from the gallery
-        const newUrls = allUrl.filter((url) => !url.includes(imageToDelete.name));
+        const newUrls = allUrl.filter(
+          (url) => !url.includes(imageToDelete.name)
+        );
         setUrl(newUrls);
 
         // Update activeUrl if necessary
@@ -165,10 +173,14 @@ export default function Annotate() {
 
         // Update idDetection or idSegmentation if necessary
         if (type === "detection") {
-          setAllData(allData.filter((img) => img.image_path !== imageToDelete.name));
+          setAllData(
+            allData.filter((img) => img.image_path !== imageToDelete.name)
+          );
           setIdDetection(newUrls.length > 0 ? allData[0].iddetection : null);
         } else if (type === "segmentation") {
-          setAllData(allData.filter((img) => img.image_path !== imageToDelete.name));
+          setAllData(
+            allData.filter((img) => img.image_path !== imageToDelete.name)
+          );
           setIdSegmentation(
             newUrls.length > 0 ? allData[0].idsegmentation : null
           );
@@ -188,51 +200,52 @@ export default function Annotate() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="bg-gradient-to-br from-blue-50 to-blue-100"
+      className="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen pb-24"
     >
       {!activeUrl && (
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="text-blue-600 bg-white p-4 rounded-lg shadow-md"
+          className="text-blue-600 bg-white p-6 rounded-lg shadow-md m-4 flex items-center"
         >
-          You don't have images for Annotations. Please upload your images to
-          use this feature.
+          <ImageIcon size={24} className="mr-3 text-blue-500" />
+          <span>
+            You don't have images for Annotations. Please upload your images to
+            use this feature.
+          </span>
         </motion.div>
       )}
       {activeUrl && (
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-white rounded-lg shadow-md p-4 mb-4"
+          className="bg-white rounded-lg shadow-md p-4 m-4 flex justify-between items-center"
         >
-          <div className="flex justify-between items-center">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handlePreviousImage}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md focus:outline-none flex items-center"
-            >
-              <ChevronLeft size={20} /> Previous
-            </motion.button>
-            <span className="mx-4 text-blue-700 font-medium">
-              {activeUrl.split("/").pop()}
-            </span>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleNextImage}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md focus:outline-none flex items-center"
-            >
-              Next <ChevronRight size={20} />
-            </motion.button>
-          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handlePreviousImage}
+            className="bg-blue-500 text-white p-2 rounded-full focus:outline-none"
+          >
+            <ArrowLeftCircle size={24} />
+          </motion.button>
+          <span className="mx-4 text-blue-700 font-medium truncate max-w-xs">
+            {activeUrl.split("/").pop()}
+          </span>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleNextImage}
+            className="bg-blue-500 text-white p-2 rounded-full focus:outline-none"
+          >
+            <ArrowRightCircle size={24} />
+          </motion.button>
         </motion.div>
       )}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white rounded-lg shadow-md overflow-y-auto"
+        className="bg-white rounded-lg shadow-md overflow-y-auto mx-4"
         style={{ height: "calc(100vh - 300px)" }}
       >
         {type === "detection" && activeUrl && idDetection && (
@@ -262,45 +275,45 @@ export default function Annotate() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={toggleGallery}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md focus:outline-none flex items-center"
+            className="bg-blue-500 text-white p-2 rounded-full focus:outline-none flex items-center justify-center"
+            aria-label={isGalleryOpen ? "Collapse Gallery" : "Expand Gallery"}
           >
             {isGalleryOpen ? (
-              <ChevronDown size={20} />
+              <ChevronDown size={24} />
             ) : (
-              <ChevronUp size={20} />
+              <ChevronUp size={24} />
             )}
-            {isGalleryOpen ? "Collapse Gallery" : "Expand Gallery"}
           </motion.button>
           {isGalleryOpen && (
-            <div className="flex justify-center space-x-2">
+            <div className="flex justify-center items-center space-x-2">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
-                className={`px-4 py-2 rounded-md ${
+                className={`p-2 rounded-full ${
                   currentPage === 1
                     ? "bg-gray-300 cursor-not-allowed text-gray-600"
                     : "bg-blue-500 text-white"
                 }`}
               >
-                Previous Page
+                <ChevronLeft size={20} />
               </motion.button>
-              <span className="px-4 py-2 rounded-md bg-blue-100 text-blue-800">
-                Page {currentPage} of {totalPages}
+              <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm">
+                {currentPage} / {totalPages}
               </span>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
-                className={`px-4 py-2 rounded-md ${
+                className={`p-2 rounded-full ${
                   currentPage === totalPages
                     ? "bg-gray-300 cursor-not-allowed text-gray-600"
                     : "bg-blue-500 text-white"
                 }`}
               >
-                Next Page
+                <ChevronRight size={20} />
               </motion.button>
             </div>
           )}
@@ -313,24 +326,26 @@ export default function Annotate() {
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden"
             >
-              <div className="flex overflow-x-auto p-2">
+              <div className="flex flex-wrap justify-center p-4 gap-4">
                 {displayImages.map((url, index) => {
                   const image_path = url.split("/").pop();
-                  const imageData = allData.find((img) => img.image_path === image_path);
-                  const isAnnotated = imageData && (
-                    (type === "detection" && imageData.bbox === 1) ||
-                    (type === "segmentation" && imageData.polygon === 1)
+                  const imageData = allData.find(
+                    (img) => img.image_path === image_path
                   );
+                  const isAnnotated =
+                    imageData &&
+                    ((type === "detection" && imageData.bbox === 1) ||
+                      (type === "segmentation" && imageData.polygon === 1));
 
                   return (
                     <motion.div
                       key={index}
-                      className="relative mx-2"
+                      className="relative"
                       whileHover={{ scale: 1.05 }}
                     >
                       <img
                         src={url}
-                        className={`cursor-pointer h-24 w-24 rounded-md shadow-md transition-all duration-300 ${
+                        className={`cursor-pointer h-24 w-24 object-cover rounded-lg shadow-md transition-all duration-300 ${
                           url === activeUrl ? "ring-4 ring-blue-500" : ""
                         }`}
                         onClick={() => send_id_compared(url)}
@@ -338,13 +353,18 @@ export default function Annotate() {
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => handleDeleteConfirmation(url.split("/").pop() || "", index)}
+                        onClick={() =>
+                          handleDeleteConfirmation(
+                            url.split("/").pop() || "",
+                            index
+                          )
+                        }
                         className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-700 focus:outline-none"
                       >
                         <Trash2 size={16} />
                       </motion.button>
                       {isAnnotated && (
-                        <div className="absolute bottom-0 left-0 bg-green-500 text-white p-1 rounded-bl-md">
+                        <div className="absolute -bottom-2 -right-2 bg-green-500 text-white p-1 rounded-full">
                           <Check size={16} />
                         </div>
                       )}

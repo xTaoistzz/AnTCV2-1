@@ -1,6 +1,6 @@
 "use client";
 import { ImBin } from "react-icons/im";
-import { FaEdit, FaPlus } from "react-icons/fa";
+import { FaEdit, FaPlus, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import CreateClass from "@/app/components/annotation-props/class/CreateClass";
@@ -19,8 +19,12 @@ const Class = () => {
   const [type, setType] = useState<string | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [classToDelete, setClassToDelete] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const params = useParams<{ id: string }>();
   const router = useRouter();
+
+  const classesPerPage = 10;
+  const totalPages = Math.ceil(typedata.length / classesPerPage);
 
   const fetchClass = useCallback(async () => {
     try {
@@ -80,9 +84,10 @@ const Class = () => {
         if (res.type === "success") {
           setShowDeleteConfirmation(false);
           setClassToDelete(null);
-          // Fetch updated class data after successful deletion
           await fetchClass();
-          window.location.reload()
+          if (currentPage > Math.ceil((typedata.length - 1) / classesPerPage)) {
+            setCurrentPage(prev => Math.max(prev - 1, 1));
+          }
         }
       }
     } catch (error) {
@@ -118,28 +123,33 @@ const Class = () => {
     }
   };
 
+  const paginatedClasses = typedata.slice(
+    (currentPage - 1) * classesPerPage,
+    currentPage * classesPerPage
+  );
+
   return (
-    <main className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg shadow-lg">
-      <div className="p-6">
+    <main className="bg-gradient-to-r from-blue-50 to-blue-100 min-h-screen w-full flex flex-col">
+      <div className="p-6 flex-grow overflow-auto">
         <motion.div 
-          className="flex justify-between items-center mb-8"
+          className="flex justify-between items-center mb-6"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-3xl font-bold text-blue-800">Classes</h1>
+          <h1 className="text-2xl font-bold text-blue-800">Classes</h1>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleShowCreate}
-            className="bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300 font-semibold rounded-lg px-4 py-2 flex items-center"
+            className="bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300 font-semibold rounded-lg px-4 py-2 text-sm flex items-center"
           >
             <FaPlus className="mr-2" /> Create Class
           </motion.button>
         </motion.div>
         
         <motion.p 
-          className="text-blue-700 mb-6"
+          className="text-blue-700 mb-4 text-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -147,81 +157,107 @@ const Class = () => {
           There are {typedata.length} classes. Click on a class name to edit it.
         </motion.p>
 
-        <AnimatePresence>
-          {typedata.map((classItem, index) => (
-            <motion.div
-              key={classItem.class_id}
-              className="bg-white rounded-lg shadow-md mb-4 overflow-hidden"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="flex items-center p-4">
-                <div className="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold mr-4">
-                  {index + 1}
-                </div>
-                {editingClassId === classItem.class_id ? (
-                  <input
-                    value={newLabel}
-                    onChange={(e) => setNewLabel(e.target.value)}
-                    onBlur={() => handleRenameSubmit(classItem.class_id)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleRenameSubmit(classItem.class_id)}
-                    autoFocus
-                    className="flex-1 p-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                ) : (
-                  <div 
-                    className="flex-1 p-2 text-blue-800 font-medium cursor-pointer hover:text-blue-600 transition-colors duration-300"
-                    onClick={() => handleEdit(classItem.class_id, classItem.class_label)}
-                  >
-                    {classItem.class_label}
+        <div className="space-y-2 mb-4">
+          <AnimatePresence>
+            {paginatedClasses.map((classItem, index) => (
+              <motion.div
+                key={classItem.class_id}
+                className="bg-white rounded-lg shadow-sm overflow-hidden"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex items-center p-3">
+                  <div className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mr-4">
+                    {index + 1 + (currentPage - 1) * classesPerPage}
                   </div>
-                )}
-                <div className="flex space-x-2">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => handleEdit(classItem.class_id, classItem.class_label)}
-                    className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors duration-300"
-                  >
-                    <FaEdit className="w-5 h-5" />
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => handleDeleteConfirmation(classItem.class_id)}
-                    className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-300"
-                  >
-                    <ImBin className="w-5 h-5" />
-                  </motion.button>
+                  {editingClassId === classItem.class_id ? (
+                    <input
+                      value={newLabel}
+                      onChange={(e) => setNewLabel(e.target.value)}
+                      onBlur={() => handleRenameSubmit(classItem.class_id)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleRenameSubmit(classItem.class_id)}
+                      autoFocus
+                      className="flex-1 p-2 text-sm border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  ) : (
+                    <div 
+                      className="flex-1 p-2 text-sm text-blue-800 font-medium cursor-pointer hover:text-blue-600 transition-colors duration-300"
+                      onClick={() => handleEdit(classItem.class_id, classItem.class_label)}
+                    >
+                      {classItem.class_label}
+                    </div>
+                  )}
+                  <div className="flex space-x-2">
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleEdit(classItem.class_id, classItem.class_label)}
+                      className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors duration-300"
+                    >
+                      <FaEdit className="w-4 h-4" />
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleDeleteConfirmation(classItem.class_id)}
+                      className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-300"
+                    >
+                      <ImBin className="w-4 h-4" />
+                    </motion.button>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center mt-4 space-x-4">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="bg-blue-500 text-white p-2 rounded-full disabled:bg-gray-300"
+            >
+              <FaChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-blue-800 text-sm">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="bg-blue-500 text-white p-2 rounded-full disabled:bg-gray-300"
+            >
+              <FaChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
+
       <CreateClass
         isOpen={showCreate}
         onClose={handleCloseCreate}
         idproject={params.id}
         onCreate={fetchClass}
       />
+
       {showDeleteConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg">
-            <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
-            <p>Are you sure you want to delete this class?</p>
-            <div className="mt-4 flex justify-end space-x-2">
+          <div className="bg-white p-4 rounded-lg max-w-sm w-full mx-4">
+            <h2 className="text-lg font-bold mb-3">Confirm Deletion</h2>
+            <p className="text-sm mb-4">Are you sure you want to delete this class?</p>
+            <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setShowDeleteConfirmation(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                className="px-3 py-1 bg-gray-300 text-gray-800 rounded text-sm hover:bg-gray-400"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
               >
                 Delete
               </button>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ConfirmDeleteProjectProps {
@@ -7,44 +7,16 @@ interface ConfirmDeleteProjectProps {
   projectName: string;
   onConfirm: () => void;
   onCancel: () => void;
+  isDeleting: boolean;
 }
 
 const ConfirmDeleteProject: React.FC<ConfirmDeleteProjectProps> = ({
   isOpen,
-  projectId,
   projectName,
   onConfirm,
-  onCancel
+  onCancel,
+  isDeleting
 }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleConfirmDelete = async () => {
-    setIsDeleting(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`${process.env.ORIGIN_URL}/delete/project`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ idproject: projectId }),
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete project');
-      }
-
-      onConfirm();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while deleting the project');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -62,7 +34,6 @@ const ConfirmDeleteProject: React.FC<ConfirmDeleteProjectProps> = ({
           >
             <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
             <p className="mb-6">Are you sure you want to delete the project "{projectName}"? This action cannot be undone.</p>
-            {error && <p className="text-red-500 mb-4">{error}</p>}
             <div className="flex justify-end space-x-4">
               <button
                 onClick={onCancel}
@@ -72,7 +43,7 @@ const ConfirmDeleteProject: React.FC<ConfirmDeleteProjectProps> = ({
                 Cancel
               </button>
               <button
-                onClick={handleConfirmDelete}
+                onClick={onConfirm}
                 className={`px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-300 ${
                   isDeleting ? 'opacity-50 cursor-not-allowed' : ''
                 }`}

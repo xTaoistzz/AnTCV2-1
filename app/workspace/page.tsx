@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useEffect } from "react";
 import { FaImages, FaSearch, FaFilter } from "react-icons/fa";
@@ -9,6 +8,7 @@ import SharedProjects from "../components/workspace_props/shareproject";
 import EditProject from "../components/workspace_props/edit";
 import ConfirmDeleteProject from "../components/workspace_props/delete";
 import AddCollaborator from "../components/workspace_props/share";
+import CheckLoad from "../check-loading/page";
 
 export interface Project {
   idproject: number;
@@ -134,27 +134,9 @@ export default function WorkspacePage() {
     }
   };
 
-  const handleSaveEdit = async (updatedProject: Project) => {
-    try {
-      const response = await fetch(`${process.env.ORIGIN_URL}/updateProject`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedProject),
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update project');
-      }
-
-      setIsEditModalOpen(false);
-      fetchProjects();
-    } catch (error) {
-      console.error("Error updating project:", error);
-      // Handle error (e.g., show error message to user)
-    }
+  const handleSaveEdit = (updatedProject: Project) => {
+    setIsEditModalOpen(false);
+    fetchProjects();
   };
 
   const handleDeleteConfirmation = (id: number, name: string) => {
@@ -164,6 +146,7 @@ export default function WorkspacePage() {
   const handleDeleteProject = async () => {
     if (deleteConfirmation.projectId) {
       try {
+        setLoading(true);
         const response = await fetch(`${process.env.ORIGIN_URL}/delete/project`, {
           method: 'DELETE',
           headers: {
@@ -182,10 +165,12 @@ export default function WorkspacePage() {
           projectId: null,
           projectName: "",
         });
-        fetchProjects();
+        fetchProjects(); // Refresh projects after deletion
       } catch (error) {
         console.error("Error deleting project:", error);
         // Handle error (e.g., show error message to user)
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -212,7 +197,7 @@ export default function WorkspacePage() {
     setIsFilterDropdownOpen(!isFilterDropdownOpen);
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div><CheckLoad/></div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
@@ -348,6 +333,7 @@ export default function WorkspacePage() {
               projectName: "",
             })
           }
+          isDeleting={loading}
         />
 
         {isAddCollaboratorOpen !== null && (
