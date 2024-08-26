@@ -12,20 +12,50 @@ interface Project {
 
 interface EditProjectProps {
   project: Project;
-  onSave: (updatedProject: Project) => Promise<void>;
+  onSave: any;
   onCancel: () => void;
 }
 
 const EditProject: React.FC<EditProjectProps> = ({ project, onSave, onCancel }) => {
   const [projectName, setProjectName] = useState(project.project_name);
   const [description, setDescription] = useState(project.description);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSave = async () => {
     if (projectName.trim() === '') {
       alert('Project name cannot be empty');
       return;
     }
-    await onSave({ ...project, project_name: projectName, description });
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${process.env.ORIGIN_URL}/updateProject`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          idproject: project.idproject,
+          project_name: projectName,
+          description: description,
+        }),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update project');
+      }
+
+      const updatedProject = await response.json();
+      onSave(updatedProject);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred while updating the project');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -82,18 +112,23 @@ const EditProject: React.FC<EditProjectProps> = ({ project, onSave, onCancel }) 
               <FaImage className="absolute left-3 top-3 text-gray-400" />
             </div>
           </div>
+          {error && <div className="text-red-500 mb-4">{error}</div>}
           <div className="flex justify-end">
             <button
               onClick={onCancel}
               className="bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 mr-2 transition duration-300"
+              disabled={isLoading}
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300"
+              className={`bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 ${
+                isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              disabled={isLoading}
             >
-              Save Changes
+              {isLoading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </motion.div>

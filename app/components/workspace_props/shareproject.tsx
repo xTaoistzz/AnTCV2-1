@@ -1,56 +1,35 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { HiMiniPhoto } from "react-icons/hi2";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import ProgressBar from "../progress";  // Import ProgressBar component
+import ProgressBar from "../progress";
 
 interface SharedProject {
   idproject: number;
   project_name: string;
   description: string;
   owner: string;
+  isShared: boolean;
+  type: string;
+  progress?: {
+    total: number;
+    process: number;
+  };
 }
 
 interface SharedProjectsProps {
   username: string;
   searchTerm: string;
+  projects: any;
 }
 
 const SharedProjects: React.FC<SharedProjectsProps> = ({
   username,
   searchTerm,
+  projects
 }) => {
-  const [sharedProjects, setSharedProjects] = useState<SharedProject[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<SharedProject[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [firstImgMap, setFirstImgMap] = useState<{ [key: number]: string }>({});
-
-  // ... (existing fetchSharedProjects and fetchFirstImages functions)
-  const fetchSharedProjects = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.ORIGIN_URL}/allProject/share`,
-        {
-          credentials: "include",
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setSharedProjects(data.project);
-        setFilteredProjects(data.project);
-        fetchFirstImages(data.project);
-      } else {
-        setError("Failed to fetch shared projects");
-      }
-    } catch (error) {
-      setError("An error occurred. Please try again later.");
-      console.error("An error occurred:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchFirstImages = async (projects: SharedProject[]) => {
     const imgMap: { [key: number]: string } = {};
@@ -78,42 +57,17 @@ const SharedProjects: React.FC<SharedProjectsProps> = ({
     }
     setFirstImgMap(imgMap);
   };
-  useEffect(() => {
-    fetchSharedProjects();
-  }, []);
 
   useEffect(() => {
-    const filtered = sharedProjects.filter((project) =>
+    fetchFirstImages(projects);
+  }, [projects]);
+
+  useEffect(() => {
+    const filtered = projects.filter((project:any) =>
       project.project_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredProjects(filtered);
-  }, [searchTerm, sharedProjects]);
-
-  if (loading) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="text-blue-600 text-lg"
-      >
-        Loading shared projects...
-      </motion.div>
-    );
-  }
-
-  if (error) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="text-red-500 text-lg"
-      >
-        {error}
-      </motion.div>
-    );
-  }
+  }, [searchTerm, projects]);
 
   return (
     <motion.div
@@ -137,7 +91,7 @@ const SharedProjects: React.FC<SharedProjectsProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="space-y-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6"
         >
           {filteredProjects.map((project, index) => (
             <motion.div

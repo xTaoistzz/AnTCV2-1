@@ -1,27 +1,56 @@
 "use client";
 
-import { useState, ChangeEvent, FormEvent } from "react";
+import React, { useState, ChangeEvent, FormEvent, FocusEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import GuestNav from "../components/navigation/GuestNav";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import Modal from "@/app/components/Modal"; // Adjust the path as needed
+import { motion, AnimatePresence } from "framer-motion";
+import Modal from "@/app/components/Modal";
 
-export default function SignUp() {
-  const [formData, setFormData] = useState({
+interface FormData {
+  username: string;
+  email: string;
+  password: string;
+  conPassword: string;
+}
+
+const SignUp: React.FC = () => {
+  const [formData, setFormData] = useState<FormData>({
     username: "",
     email: "",
     password: "",
     conPassword: ""
   });
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [focusedField, setFocusedField] = useState<keyof FormData | null>(null);
   const router = useRouter();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
+  };
+
+  const handleFocus = (e: FocusEvent<HTMLInputElement>) => {
+    setFocusedField(e.target.name as keyof FormData);
+  };
+
+  const handleBlur = () => {
+    setFocusedField(null);
+  };
+
+  const getRequirement = (field: keyof FormData): string => {
+    switch (field) {
+      case 'username':
+        return "Username must contain only a-z, A-Z, 0-9, _ and be at least 8 characters long.";
+      case 'email':
+        return "Email should be in the format: example@email.com";
+      case 'password':
+        return "Password must be at least 8 characters long.";
+      default:
+        return "";
+    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -93,63 +122,37 @@ export default function SignUp() {
           className="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full"
           onSubmit={handleSubmit}
         >
-          <div className="mb-4">
-            <label className="block text-blue-700 text-sm font-semibold mb-2" htmlFor="username">
-              Username
-            </label>
-            <input
-              className="w-full p-3 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 focus:outline-none focus:border-blue-500 transition duration-300"
-              type="text"
-              id="username"
-              name="username"
-              placeholder="Enter your username"
-              value={formData.username}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-blue-700 text-sm font-semibold mb-2" htmlFor="email">
-              Email
-            </label>
-            <input
-              className="w-full p-3 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 focus:outline-none focus:border-blue-500 transition duration-300"
-              type="email"
-              id="email"
-              name="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-blue-700 text-sm font-semibold mb-2" htmlFor="password">
-              Password
-            </label>
-            <input
-              className="w-full p-3 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 focus:outline-none focus:border-blue-500 transition duration-300"
-              type="password"
-              id="password"
-              name="password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="mb-6">
-            <label className="block text-blue-700 text-sm font-semibold mb-2" htmlFor="conPassword">
-              Confirm Password
-            </label>
-            <input
-              className="w-full p-3 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 focus:outline-none focus:border-blue-500 transition duration-300"
-              type="password"
-              id="conPassword"
-              name="conPassword"
-              placeholder="Confirm your password"
-              value={formData.conPassword}
-              onChange={handleChange}
-            />
-            {errorMessage && <p className="text-red-500 text-sm mt-2">{errorMessage}</p>}
-          </div>
+          {(Object.keys(formData) as Array<keyof FormData>).map((field) => (
+            <div key={field} className="mb-4">
+              <label className="block text-blue-700 text-sm font-semibold mb-2" htmlFor={field}>
+                {field.charAt(0).toUpperCase() + field.slice(1)}
+              </label>
+              <input
+                className="w-full p-3 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 focus:outline-none focus:border-blue-500 transition duration-300"
+                type={field.includes('password') ? 'password' : field === 'email' ? 'email' : 'text'}
+                id={field}
+                name={field}
+                placeholder={`Enter your ${field}`}
+                value={formData[field]}
+                onChange={handleChange}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+              />
+              <AnimatePresence>
+                {focusedField === field && field !== 'conPassword' && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="text-sm text-blue-600 mt-1"
+                  >
+                    {getRequirement(field)}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+          {errorMessage && <p className="text-red-500 text-sm mt-2">{errorMessage}</p>}
           <div className="flex items-center justify-between mb-6">
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -177,4 +180,6 @@ export default function SignUp() {
       />
     </main>
   );
-}
+};
+
+export default SignUp;

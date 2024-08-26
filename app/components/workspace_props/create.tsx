@@ -77,7 +77,7 @@ const CreateProject: React.FC<CreateProjectProps> = ({ isOpen, onClose, onCreate
             )}
             <input
               type="text"
-              placeholder="Project Name"
+              placeholder="Enter your dataset name"
               value={newProject.project_name}
               onChange={(e) =>
                 setNewProject({ ...newProject, project_name: e.target.value })
@@ -85,7 +85,7 @@ const CreateProject: React.FC<CreateProjectProps> = ({ isOpen, onClose, onCreate
               className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <textarea
-              placeholder="Project Description"
+              placeholder="Why are you create dataset for?"
               value={newProject.description}
               onChange={(e) =>
                 setNewProject({ ...newProject, description: e.target.value })
