@@ -13,6 +13,8 @@ import {
   Image as ImageIcon,
   ArrowLeftCircle,
   ArrowRightCircle,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import DeleteImageCon from "./DeleteImageCon";
 
@@ -130,6 +132,14 @@ export default function Annotate() {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
+  };
+
+  const handleFirstPage = () => {
+    setCurrentPage(1);
+  };
+
+  const handleLastPage = () => {
+    setCurrentPage(totalPages);
   };
 
   const toggleGallery = () => {
@@ -289,6 +299,19 @@ export default function Annotate() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={handleFirstPage}
+                disabled={currentPage === 1}
+                className={`p-2 rounded-full ${
+                  currentPage === 1
+                    ? "bg-gray-300 cursor-not-allowed text-gray-600"
+                    : "bg-blue-500 text-white"
+                }`}
+              >
+                <ChevronsLeft size={20} />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
                 className={`p-2 rounded-full ${
@@ -314,6 +337,19 @@ export default function Annotate() {
                 }`}
               >
                 <ChevronRight size={20} />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLastPage}
+                disabled={currentPage === totalPages}
+                className={`p-2 rounded-full ${
+                  currentPage === totalPages
+                    ? "bg-gray-300 cursor-not-allowed text-gray-600"
+                    : "bg-blue-500 text-white"
+                }`}
+              >
+                <ChevronsRight size={20} />
               </motion.button>
             </div>
           )}
