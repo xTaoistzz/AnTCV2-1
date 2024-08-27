@@ -1,6 +1,6 @@
 "use client";
 import { ImBin } from "react-icons/im";
-import { FaEdit, FaCloudUploadAlt, FaImages, FaPlus, FaCheck, FaTimes } from "react-icons/fa";
+import { FaEdit, FaCloudUploadAlt, FaImages, FaPlus, FaCheck, FaTimes, FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
 import React, { useState, useCallback, useEffect } from "react";
 import { useParams } from "next/navigation";
 import CreateClass from "@/app/components/annotation-props/class/CreateClass";
@@ -25,20 +25,20 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ isOpen, onClose
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
         <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
-        <p>Are you sure you want to delete the class "{className}"?</p>
-        <p>This action cannot be undone.</p>
-        <div className="mt-4 flex justify-end space-x-2">
+        <p className="mb-2">Are you sure you want to delete the class "{className}"?</p>
+        <p className="mb-4">This action cannot be undone.</p>
+        <div className="flex justify-end space-x-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+            className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 text-sm"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
           >
             Delete
           </button>
@@ -55,13 +55,16 @@ const Class = () => {
   const [visibleDropzone, setVisibleDropzone] = useState<string | null>(null);
   const [visibleGallery, setVisibleGallery] = useState<string | null>(null);
   const [imageData, setImageData] = useState<{ [key: string]: string[] }>({});
-  const [currentPage, setCurrentPage] = useState<{ [key: string]: number }>({});
+  const [currentPage, setCurrentPage] = useState(1);
   const [imagesPerPage] = useState(18);
   const [editingClassIndex, setEditingClassIndex] = useState<string | null>(null);
   const [editedLabel, setEditedLabel] = useState<string>("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [classToDelete, setClassToDelete] = useState<Label | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const params = useParams<{ id: string }>();
+
+  const classesPerPage = 10;
 
   const fetchClass = useCallback(async () => {
     try {
@@ -95,7 +98,6 @@ const Class = () => {
         );
         const data = await res.json();
         setImageData((prev) => ({ ...prev, [classIndex]: data.imgAll }));
-        setCurrentPage((prev) => ({ ...prev, [classIndex]: 1 }));
       } catch (error) {
         console.error("Error fetching images:", error);
       }
@@ -140,11 +142,9 @@ const Class = () => {
           delete updated[classToDelete.class_index];
           return updated;
         });
-        setCurrentPage((prev) => {
-          const updated = { ...prev };
-          delete updated[classToDelete.class_index];
-          return updated;
-        });
+        if (currentPage > Math.ceil((typedata.length - 1) / classesPerPage)) {
+          setCurrentPage(prev => Math.max(prev - 1, 1));
+        }
       } else {
         console.error("Error deleting class:", await response.text());
       }
@@ -239,147 +239,195 @@ const Class = () => {
     setVisibleGallery(visibleGallery === class_index ? null : class_index);
   };
 
-  const handlePageChange = (class_index: string, pageNumber: number) => {
-    setCurrentPage((prev) => ({ ...prev, [class_index]: pageNumber }));
-  };
+  const filteredClasses = typedata.filter(classItem =>
+    classItem.class_label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const getPaginatedImages = (classIndex: string) => {
-    const start = (currentPage[classIndex] - 1) * imagesPerPage;
-    const end = start + imagesPerPage;
-    return imageData[classIndex]?.slice(start, end) || [];
-  };
+  const paginatedClasses = filteredClasses.slice(
+    (currentPage - 1) * classesPerPage,
+    currentPage * classesPerPage
+  );
+
+  const totalPages = Math.ceil(filteredClasses.length / classesPerPage);
 
   return (
-    <main className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg shadow-lg">
-      <div className="p-6">
+    <main className="bg-gradient-to-r from-blue-50 to-blue-100 min-h-screen w-full flex flex-col">
+      <div className="p-6 flex-grow overflow-auto">
         <motion.div 
-          className="flex justify-between items-center mb-8"
+          className="flex flex-col sm:flex-row justify-between items-center mb-6"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-3xl font-bold text-blue-800">Classes</h1>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleShowCreate}
-            className="bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300 font-semibold rounded-lg px-4 py-2 flex items-center"
-          >
-            <FaPlus className="mr-2" /> Create Class
-          </motion.button>
-        </motion.div>
-        <AnimatePresence>
-          {typedata.map((type) => (
-            <motion.div
-              key={type.class_index}
-              className="bg-white rounded-lg shadow-md mb-4 overflow-hidden"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
+          <h1 className="text-2xl font-bold text-blue-800 mb-4 sm:mb-0">Classes</h1>
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleShowCreate}
+              className="bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300 font-semibold rounded-lg px-4 py-2 text-sm flex items-center"
             >
-              <div className="flex items-center justify-between p-4 bg-blue-50">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-blue-600 text-white p-3 rounded-full w-10 h-10 flex items-center justify-center font-bold">
-                    {parseInt(type.class_index) + 1}
+              <FaPlus className="mr-2" /> Create Class
+            </motion.button>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search classes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+          </div>
+        </motion.div>
+        
+        <motion.p 
+          className="text-blue-700 mb-4 text-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          There are {filteredClasses.length} classes{searchTerm && " matching your search"}. Click on a class name to edit it.
+        </motion.p>
+
+        <div className="space-y-2 mb-4">
+          <AnimatePresence>
+            {paginatedClasses.map((classItem, index) => (
+              <motion.div
+                key={classItem.class_index}
+                className="bg-white rounded-lg shadow-sm overflow-hidden"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex items-center p-3">
+                  <div className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mr-4">
+                    {index + 1 + (currentPage - 1) * classesPerPage}
                   </div>
-                  <div className="text-lg font-semibold text-blue-800">
-                    {editingClassIndex === type.class_index ? (
-                      <div className="flex items-center">
-                        <input
-                          type="text"
-                          value={editedLabel}
-                          onChange={(e) => setEditedLabel(e.target.value)}
-                          className="border-b border-blue-500 bg-transparent focus:outline-none"
-                        />
-                        <button
-                          onClick={() => handleEditSave(type.class_index)}
-                          className="ml-2 text-green-500 hover:text-green-600"
-                        >
-                          <FaCheck />
-                        </button>
-                        <button
-                          onClick={handleEditCancel}
-                          className="ml-2 text-red-500 hover:text-red-600"
-                        >
-                          <FaTimes />
-                        </button>
-                      </div>
-                    ) : (
-                      <span onClick={() => handleEditStart(type.class_index, type.class_label)}>
-                        {type.class_label}
-                      </span>
-                    )}
+                  {editingClassIndex === classItem.class_index ? (
+                    <div className="flex items-center flex-1">
+                      <input
+                        type="text"
+                        value={editedLabel}
+                        onChange={(e) => setEditedLabel(e.target.value)}
+                        className="flex-1 p-2 text-sm border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        onClick={() => handleEditSave(classItem.class_index)}
+                        className="ml-2 text-green-500 hover:text-green-600"
+                      >
+                        <FaCheck />
+                      </button>
+                      <button
+                        onClick={handleEditCancel}
+                        className="ml-2 text-red-500 hover:text-red-600"
+                      >
+                        <FaTimes />
+                      </button>
+                    </div>
+                  ) : (
+                    <div 
+                      className="flex-1 p-2 text-sm text-blue-800 font-medium cursor-pointer hover:text-blue-600 transition-colors duration-300"
+                      onClick={() => handleEditStart(classItem.class_index, classItem.class_label)}
+                    >
+                      {classItem.class_label}
+                    </div>
+                  )}
+                  <div className="flex space-x-2">
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => toggleDropzone(classItem.class_index)}
+                      className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors duration-300"
+                    >
+                      <FaCloudUploadAlt className="w-4 h-4" />
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => toggleGallery(classItem.class_index)}
+                      className="bg-purple-500 text-white p-2 rounded-full hover:bg-purple-600 transition-colors duration-300 flex items-center"
+                    >
+                      <FaImages className="w-4 h-4 mr-1" />
+                      <span className="text-xs">{imageData[classItem.class_index]?.length || 0}</span>
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleDeleteConfirmation(classItem)}
+                      className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-300"
+                    >
+                      <ImBin className="w-4 h-4" />
+                      </motion.button>
                   </div>
                 </div>
-                <div className="flex space-x-2">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => toggleDropzone(type.class_index)}
-                    className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors duration-300"
-                  >
-                    <FaCloudUploadAlt className="w-5 h-5" />
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => toggleGallery(type.class_index)}
-                    className="bg-purple-500 text-white p-2 rounded-full hover:bg-purple-600 transition-colors duration-300 flex items-center"
-                  >
-                    <FaImages className="w-5 h-5 mr-2" />
-                    <span>{imageData[type.class_index]?.length || 0}</span>
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => handleDeleteConfirmation(type)}
-                    className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-300"
-                  >
-                    <ImBin className="w-5 h-5" />
-                  </motion.button>
-                </div>
-              </div>
-              <AnimatePresence>
-                {visibleDropzone === type.class_index && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Dropzone class_index={type.class_index} />
-                  </motion.div>
-                )}
-                {visibleGallery === type.class_index && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Gallery
-                      images={getPaginatedImages(type.class_index)}
-                      classIndex={type.class_index}
-                      currentPage={currentPage[type.class_index] || 1}
-                      onPageChange={handlePageChange}
-                      totalImages={imageData[type.class_index]?.length || 0}
-                      imagesPerPage={imagesPerPage}
-                      onImageDelete={handleImageDelete}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+                <AnimatePresence>
+                  {visibleDropzone === classItem.class_index && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Dropzone class_index={classItem.class_index} />
+                    </motion.div>
+                  )}
+                  {visibleGallery === classItem.class_index && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Gallery
+                        images={imageData[classItem.class_index] || []}
+                        classIndex={classItem.class_index}
+                        currentPage={1}
+                        onPageChange={() => {}}
+                        totalImages={imageData[classItem.class_index]?.length || 0}
+                        imagesPerPage={imagesPerPage}
+                        onImageDelete={handleImageDelete}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center mt-4 space-x-4">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="bg-blue-500 text-white p-2 rounded-full disabled:bg-gray-300 transition-colors duration-300"
+            >
+              <FaChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-blue-800 text-sm">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="bg-blue-500 text-white p-2 rounded-full disabled:bg-gray-300 transition-colors duration-300"
+            >
+              <FaChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
+
       <CreateClass
         isOpen={showCreate}
         onClose={handleCloseCreate}
         idproject={params.id}
         onCreate={fetchClass}
       />
+
       <ConfirmDeleteModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}

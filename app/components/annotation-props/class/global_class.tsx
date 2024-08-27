@@ -1,6 +1,6 @@
 "use client";
 import { ImBin } from "react-icons/im";
-import { FaEdit, FaPlus, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaEdit, FaPlus, FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
 import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import CreateClass from "@/app/components/annotation-props/class/CreateClass";
@@ -20,11 +20,11 @@ const Class = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [classToDelete, setClassToDelete] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const params = useParams<{ id: string }>();
   const router = useRouter();
 
   const classesPerPage = 10;
-  const totalPages = Math.ceil(typedata.length / classesPerPage);
 
   const fetchClass = useCallback(async () => {
     try {
@@ -123,29 +123,47 @@ const Class = () => {
     }
   };
 
-  const paginatedClasses = typedata.slice(
+  const filteredClasses = typedata.filter(classItem =>
+    classItem.class_label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const paginatedClasses = filteredClasses.slice(
     (currentPage - 1) * classesPerPage,
     currentPage * classesPerPage
   );
+
+  const totalPages = Math.ceil(filteredClasses.length / classesPerPage);
 
   return (
     <main className="bg-gradient-to-r from-blue-50 to-blue-100 min-h-screen w-full flex flex-col">
       <div className="p-6 flex-grow overflow-auto">
         <motion.div 
-          className="flex justify-between items-center mb-6"
+          className="flex flex-col sm:flex-row justify-between items-center mb-6"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-2xl font-bold text-blue-800">Classes</h1>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleShowCreate}
-            className="bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300 font-semibold rounded-lg px-4 py-2 text-sm flex items-center"
-          >
-            <FaPlus className="mr-2" /> Create Class
-          </motion.button>
+          <h1 className="text-2xl font-bold text-blue-800 mb-4 sm:mb-0">Classes</h1>
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleShowCreate}
+              className="bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-300 font-semibold rounded-lg px-4 py-2 text-sm flex items-center"
+            >
+              <FaPlus className="mr-2" /> Create Class
+            </motion.button>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search classes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+          </div>
         </motion.div>
         
         <motion.p 
@@ -154,7 +172,7 @@ const Class = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          There are {typedata.length} classes. Click on a class name to edit it.
+          There are {filteredClasses.length} classes{searchTerm && " matching your search"}. Click on a class name to edit it.
         </motion.p>
 
         <div className="space-y-2 mb-4">

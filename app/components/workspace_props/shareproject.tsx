@@ -102,7 +102,10 @@ const SharedProjects: React.FC<SharedProjectsProps> = ({
               className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300"
             >
               <Link href={`/workspace/${project.idproject}`}>
-                <div className="p-6">
+                <div className="p-6 relative">
+                  <div className="absolute top-2 right-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                    Owner: {project.owner}
+                  </div>
                   <div className="flex items-center mb-4">
                     {firstImgMap[project.idproject] ? (
                       <img
@@ -120,9 +123,6 @@ const SharedProjects: React.FC<SharedProjectsProps> = ({
                         {project.project_name}
                       </h2>
                       <p className="text-blue-600">{project.description}</p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Owner: {project.owner}
-                      </p>
                     </div>
                   </div>
                   <div className="mt-4">
