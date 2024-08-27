@@ -226,47 +226,31 @@ export default function WorkspacePage() {
               />
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400" />
             </div>
-            <div className="relative inline-block text-left">
-              <div>
-                <button
-                  type="button"
-                  onClick={toggleFilterDropdown}
-                  className="inline-flex justify-center w-full rounded-full border border-blue-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500 transition duration-300"
-                  id="options-menu"
-                  aria-haspopup="true"
-                  aria-expanded="true"
-                >
-                  <FaFilter className="mr-2 mt-0.5" />
-                  {filterOption === 'all' ? 'All Projects' : filterOption === 'user' ? 'Your Projects' : 'Shared Projects'}
-                  <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              </div>
+            <div className="relative inline-block text-left z-10">
+              <button
+                type="button"
+                onClick={toggleFilterDropdown}
+                className="inline-flex justify-center items-center w-full rounded-full border border-blue-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-100 focus:ring-blue-500 transition duration-300"
+              >
+                <FaFilter className="mr-2" />
+                {filterOption === 'all' ? 'All Projects' : filterOption === 'user' ? 'Your Projects' : 'Shared Projects'}
+                <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
               {isFilterDropdownOpen && (
                 <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                   <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-                    <button
-                      onClick={() => handleFilterChange('all')}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                      role="menuitem"
-                    >
-                      All Projects
-                    </button>
-                    <button
-                      onClick={() => handleFilterChange('user')}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                      role="menuitem"
-                    >
-                      Your Projects
-                    </button>
-                    <button
-                      onClick={() => handleFilterChange('shared')}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                      role="menuitem"
-                    >
-                      Shared Projects
-                    </button>
+                    {['all', 'user', 'shared'].map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => handleFilterChange(option as FilterOption)}
+                        className={`block w-full text-left px-4 py-2 text-sm ${filterOption === option ? 'bg-blue-100 text-blue-900' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'}`}
+                        role="menuitem"
+                      >
+                        {option === 'all' ? 'All Projects' : option === 'user' ? 'Your Projects' : 'Shared Projects'}
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
@@ -275,13 +259,15 @@ export default function WorkspacePage() {
         </div>
 
         <div className="w-full space-y-8">
-        {filterOption === 'all' || filterOption === 'user' ? (
+          {(filterOption === 'all' || filterOption === 'user') && (
             <div>
               <h2 className="text-2xl font-semibold mb-4 text-blue-700">
                 Your Projects
               </h2>
               <UserProjects
-                projects={userProjects}
+                projects={userProjects.filter(p => 
+                  p.project_name.toLowerCase().includes(searchTerm.toLowerCase())
+                )}
                 firstImgMap={firstImgMap}
                 handleEditProject={handleEditProject}
                 handleDeleteConfirmation={handleDeleteConfirmation}
@@ -289,9 +275,9 @@ export default function WorkspacePage() {
                 searchTerm={searchTerm}
               />
             </div>
-          ) : null}
+          )}
 
-          {filterOption === 'all' || filterOption === 'shared' ? (
+          {(filterOption === 'all' || filterOption === 'shared') && (
             <div>
               <h2 className="text-2xl font-semibold mb-4 text-blue-700">
                 Shared Projects
@@ -304,7 +290,7 @@ export default function WorkspacePage() {
                 searchTerm={searchTerm}
               />
             </div>
-          ) : null}
+          )}
         </div>
 
         <CreateProject
