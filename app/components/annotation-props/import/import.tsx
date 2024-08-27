@@ -109,7 +109,7 @@ names:
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 flex flex-col items-center justify-center p-4"
+      className="min-h-screen flex flex-col items-center justify-center p-4"
     >
       <motion.div
         initial={{ y: -20, opacity: 0 }}

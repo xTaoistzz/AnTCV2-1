@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tag, ImageIcon, Layers, Settings, X, Loader, AlertTriangle } from 'lucide-react';
-
+import { FaChartBar, FaObjectGroup, FaImage } from 'react-icons/fa';
 type AnnotationType = 'classification' | 'detection' | 'segmentation';
 
 interface TabProps {
@@ -212,8 +212,8 @@ const Tab: React.FC<TabProps> = ({ initialType = 'classification' }) => {
 
   const tabConfig = {
     classification: { icon: Tag, color: 'blue' },
-    detection: { icon: ImageIcon, color: 'green' },
-    segmentation: { icon: Layers, color: 'purple' },
+    detection: { icon: FaObjectGroup, color: 'green' },
+    segmentation: { icon: ImageIcon, color: 'purple' },
   };
 
   const renderTab = (type: AnnotationType) => {

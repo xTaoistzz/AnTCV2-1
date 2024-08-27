@@ -104,9 +104,9 @@ const Dropzone = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="bg-white p-6 rounded-lg shadow-lg"
+      className=" p-6 rounded-lg shadow-lg"
     >
-      <div className="mb-4 p-4 bg-blue-100 text-blue-800 rounded-lg flex items-start">
+      <div className="mb-4 p-4 bg-white text-blue-800 rounded-lg flex items-start">
         <FaInfoCircle className="mr-2 mt-1 flex-shrink-0" />
         <p>
           Please upload image files only (JPEG, PNG). Other file types will be rejected.

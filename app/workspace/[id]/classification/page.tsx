@@ -8,7 +8,7 @@ import Class from "@/app/components/annotation-props/class/class_for_classificat
 const Classification = () => {
 
   return (
-    <main><Class/></main>
+    <main className=""><Class/></main>
   );
 };
 

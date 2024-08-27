@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaChartBar, FaObjectGroup, FaImage } from 'react-icons/fa';
-
+import { Tag, ImageIcon, Layers, Settings, X, Loader, AlertTriangle } from 'lucide-react';
 interface ProgressBarProps {
   idproject: number;
 }
@@ -22,7 +22,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ idproject }) => {
   useEffect(() => {
     const fetchProgress = async () => {
       try {
-        const types = ['detection', 'segmentation', 'classification'];
+        const types = ['classification','detection','segmentation' ];
         const results = await Promise.all(
           types.map(type =>
             fetch(`${process.env.ORIGIN_URL}/${type}/getProcess/${idproject}`, {
@@ -57,9 +57,10 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ idproject }) => {
   }
 
   const typeConfig = {
-    detection: { icon: FaObjectGroup, color: 'blue' },
-    segmentation: { icon: FaImage, color: 'green' },
-    classification: { icon: FaChartBar, color: 'purple' },
+    classification: { icon: Tag, color: 'blue' },
+    detection: { icon: FaObjectGroup, color: 'green' },
+    segmentation: { icon: FaImage, color: 'purple' },
+
   };
 
   const renderProgressBar = (type: string, data: ProgressData) => {
