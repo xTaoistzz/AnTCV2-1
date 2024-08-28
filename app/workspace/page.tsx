@@ -22,7 +22,7 @@ export interface Project {
   };
 }
 
-type FilterOption = 'all' | 'user' | 'shared';
+type FilterOption = "all" | "user" | "shared";
 
 export default function WorkspacePage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -43,10 +43,13 @@ export default function WorkspacePage() {
     projectId: null,
     projectName: "",
   });
-  const [isAddCollaboratorOpen, setIsAddCollaboratorOpen] = useState<number | null>(null);
+  const [isAddCollaboratorOpen, setIsAddCollaboratorOpen] = useState<
+    number | null
+  >(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [filterOption, setFilterOption] = useState<FilterOption>('all');
-  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState<boolean>(false);
+  const [filterOption, setFilterOption] = useState<FilterOption>("all");
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] =
+    useState<boolean>(false);
 
   useEffect(() => {
     fetchProjects();
@@ -147,17 +150,20 @@ export default function WorkspacePage() {
     if (deleteConfirmation.projectId) {
       try {
         setLoading(true);
-        const response = await fetch(`${process.env.ORIGIN_URL}/delete/project`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ idproject: deleteConfirmation.projectId }),
-          credentials: 'include',
-        });
+        const response = await fetch(
+          `${process.env.ORIGIN_URL}/delete/project`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ idproject: deleteConfirmation.projectId }),
+            credentials: "include",
+          }
+        );
 
         if (!response.ok) {
-          throw new Error('Failed to delete project');
+          throw new Error("Failed to delete project");
         }
 
         setDeleteConfirmation({
@@ -197,12 +203,16 @@ export default function WorkspacePage() {
     setIsFilterDropdownOpen(!isFilterDropdownOpen);
   };
 
-  if (loading) return <div><CheckLoad/></div>;
+  if (loading)
+    return (
+      <div>
+        <CheckLoad />
+      </div>
+    );
   if (error) return <div>Error: {error}</div>;
 
   return (
     <main className="bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 min-h-screen flex flex-col items-center">
-
       <section className="p-6 w-full max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold mb-6 text-blue-800 text-center">
           Welcome to Your Workspace, {username}
@@ -233,22 +243,51 @@ export default function WorkspacePage() {
                 className="inline-flex justify-center items-center w-full rounded-full border border-blue-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-100 focus:ring-blue-500 transition duration-300"
               >
                 <FaFilter className="mr-2" />
-                {filterOption === 'all' ? 'All Projects' : filterOption === 'user' ? 'Your Projects' : 'Shared Projects'}
-                <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                {filterOption === "all"
+                  ? "All Projects"
+                  : filterOption === "user"
+                  ? "Your Projects"
+                  : "Shared Projects"}
+                <svg
+                  className="-mr-1 ml-2 h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </button>
               {isFilterDropdownOpen && (
                 <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                  <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-                    {['all', 'user', 'shared'].map((option) => (
+                  <div
+                    className="py-1"
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="options-menu"
+                  >
+                    {["all", "user", "shared"].map((option) => (
                       <button
                         key={option}
-                        onClick={() => handleFilterChange(option as FilterOption)}
-                        className={`block w-full text-left px-4 py-2 text-sm ${filterOption === option ? 'bg-blue-100 text-blue-900' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'}`}
+                        onClick={() =>
+                          handleFilterChange(option as FilterOption)
+                        }
+                        className={`block w-full text-left px-4 py-2 text-sm ${
+                          filterOption === option
+                            ? "bg-blue-100 text-blue-900"
+                            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        }`}
                         role="menuitem"
                       >
-                        {option === 'all' ? 'All Projects' : option === 'user' ? 'Your Projects' : 'Shared Projects'}
+                        {option === "all"
+                          ? "All Projects"
+                          : option === "user"
+                          ? "Your Projects"
+                          : "Shared Projects"}
                       </button>
                     ))}
                   </div>
@@ -259,14 +298,16 @@ export default function WorkspacePage() {
         </div>
 
         <div className="w-full space-y-8">
-          {(filterOption === 'all' || filterOption === 'user') && (
+          {(filterOption === "all" || filterOption === "user") && (
             <div>
               <h2 className="text-2xl font-semibold mb-4 text-blue-700">
                 Your Projects
               </h2>
               <UserProjects
-                projects={userProjects.filter(p => 
-                  p.project_name.toLowerCase().includes(searchTerm.toLowerCase())
+                projects={userProjects.filter((p) =>
+                  p.project_name
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase())
                 )}
                 firstImgMap={firstImgMap}
                 handleEditProject={handleEditProject}
@@ -277,14 +318,16 @@ export default function WorkspacePage() {
             </div>
           )}
 
-          {(filterOption === 'all' || filterOption === 'shared') && (
+          {(filterOption === "all" || filterOption === "shared") && (
             <div>
               <h2 className="text-2xl font-semibold mb-4 text-blue-700">
                 Shared Projects
               </h2>
               <SharedProjects
-                projects={sharedProjects.filter(p => 
-                  p.project_name.toLowerCase().includes(searchTerm.toLowerCase())
+                projects={sharedProjects.filter((p) =>
+                  p.project_name
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase())
                 )}
                 username={username}
                 searchTerm={searchTerm}
