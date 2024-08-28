@@ -191,7 +191,7 @@ function ImageWithPolygon({ idproject, idsegmentation, imageUrl }) {
   };
 
   return (
-    <div className={`flex flex-col items-center bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 p-4 sm:p-8 rounded-lg shadow-lg ${isZoomed ? 'fixed inset-0 z-50 overflow-y-auto overflow-x-hidden' : ''}`}>
+    <div className={`flex flex-col items-center bg-purple-100 p-4 sm:p-8 rounded-lg shadow-lg ${isZoomed ? 'fixed inset-0 z-50 overflow-y-auto overflow-x-hidden' : ''}`}>
       <div className="self-end flex flex-wrap gap-2 mb-2 sticky top-0 z-10 bg-opacity-80 bg-blue-100 p-2 rounded-lg">
         <button
           onClick={sendPolygonToBackend}

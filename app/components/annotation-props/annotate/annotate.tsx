@@ -210,7 +210,7 @@ export default function Annotate() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen pb-24"
+      className=" min-h-screen pb-24"
     >
       {!activeUrl && (
         <motion.div
