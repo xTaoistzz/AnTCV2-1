@@ -236,7 +236,7 @@ function ImageWithPolygon({ idproject, idsegmentation, imageUrl }) {
         </button>
       </div>
       <div 
-        className={`relative cursor-crosshair ${isZoomed ? 'w-full' : 'w-full max-w-4xl mx-auto'}`} 
+        className={`relative cursor-crosshair ${isZoomed ? 'min-w-screen' : 'min-w-screen max-w-4xl mx-auto'}`} 
         onMouseMove={handleMouseMove}
       >      
         <img
@@ -244,9 +244,8 @@ function ImageWithPolygon({ idproject, idsegmentation, imageUrl }) {
           ref={imgEl}
           src={imageUrl}
           alt="Annotate this image"
-          className={`rounded-lg shadow-md ${isZoomed ? 'w-full h-auto' : 'object-contain w-full h-auto max-h-[70vh]'}`}
+          className={`rounded-lg shadow-md ${isZoomed ? 'min-w-screen h-auto' : 'object-contain min-w-screen h-auto max-h-[70vh]'}`}
         />
-
         <div
           className="absolute left-0 top-0 w-full h-full pointer-events-none"
           style={{ zIndex: 10 }}
