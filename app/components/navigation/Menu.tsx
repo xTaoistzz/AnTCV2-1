@@ -40,7 +40,7 @@ const SidebarMenu = () => {
     ];
 
     return (
-        <nav className="space-y-6">
+        <nav className="space-y-4">
             <ul className="space-y-2">
                 {menuItems.map((item, index) => (
                     <li key={index}>

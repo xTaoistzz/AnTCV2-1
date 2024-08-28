@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import Navbar from '../components/navigation/Navbar';
 
 const fetchUsername = async () => {
   try {
@@ -33,5 +34,6 @@ export default function WorkspaceLayout({ children }: { children: ReactNode }) {
     checkAuth();
   }, [router]);
 
-  return <>{children}</>;
+  return <>
+        <Navbar />{children}</>;
 }

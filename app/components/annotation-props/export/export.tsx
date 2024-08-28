@@ -94,7 +94,7 @@ const ExportDataset = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="min-h-screen flex flex-col items-center justify-center p-4"
+            className="flex flex-col items-center justify-center content-center py-72"
         >
             <motion.div
                 initial={{ y: -20, opacity: 0 }}

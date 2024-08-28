@@ -135,7 +135,7 @@ const Class = () => {
   const totalPages = Math.ceil(filteredClasses.length / classesPerPage);
 
   return (
-    <main className=" min-h-screen w-full flex flex-col">
+    <main className="w-full flex flex-col">
       <div className="p-6 flex-grow overflow-auto">
         <motion.div 
           className="flex flex-col sm:flex-row justify-between items-center mb-6"

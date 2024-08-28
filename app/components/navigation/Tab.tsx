@@ -221,7 +221,7 @@ const Tab: React.FC<TabProps> = ({ initialType = 'classification' }) => {
     return (
       <div className="flex-1 relative">
         <motion.button
-          className={`w-full py-3 px-4 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center space-x-2
+          className={`w-full py-3 px-4 rounded-t-xl text-sm font-medium transition-all duration-300 flex items-center justify-center space-x-2
                      ${selectedType === type 
                        ? `bg-${color}-100 text-${color}-700 shadow-md` 
                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}

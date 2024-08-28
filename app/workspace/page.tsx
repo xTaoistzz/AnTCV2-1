@@ -201,9 +201,9 @@ export default function WorkspacePage() {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <main className="pt-10 bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 min-h-screen flex flex-col items-center">
-      <Navbar />
-      <section className="p-6 w-full max-w-7xl mx-auto pt-20">
+    <main className="bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 min-h-screen flex flex-col items-center">
+
+      <section className="p-6 w-full max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold mb-6 text-blue-800 text-center">
           Welcome to Your Workspace, {username}
         </h1>

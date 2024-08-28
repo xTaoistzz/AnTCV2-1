@@ -268,7 +268,7 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
         </button>
       </div>
       <div 
-        className={`relative cursor-crosshair ${isZoomed ? 'min-w-screen' : 'min-w-screen max-w-4xl mx-auto'}`} 
+        className={`relative cursor-crosshair ${isZoomed ? 'min-w-screen' : '  max-w-4xl mx-auto'}`} 
         onMouseMove={handleMouseMove}
       >      
         <img
@@ -276,7 +276,7 @@ function ImageWithBoundingBox({ idproject, iddetection, imageUrl }) {
           ref={imgEl}
           src={imageUrl}
           alt="Annotate this image"
-          className={`rounded-lg shadow-md ${isZoomed ? 'min-w-screen h-auto' : 'object-contain min-w-screen h-auto max-h-[70vh]'}`}
+          className={`rounded-lg shadow-md ${isZoomed ? 'min-w-screen h-auto' : 'object-contain min-w-screen h-auto max-h-fit' }`}
         />
 
         <div

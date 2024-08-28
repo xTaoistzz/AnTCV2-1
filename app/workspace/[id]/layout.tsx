@@ -11,10 +11,9 @@ interface SidebarLayoutProps {
 const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children }) => {
   return (
     <div className="flex flex-col min-h-screen bg-blue-50">
-      <Navbar />
-      <div className="flex flex-1 mt-16">
+      <div className="flex flex-1">
         <Sidebar />
-        <main className="flex-1 p-6 bg-white rounded-tl-3xl shadow-xl">
+        <main className="flex-1 p-2 bg-white shadow-xl">
           <Tab />
           {children}
         </main>

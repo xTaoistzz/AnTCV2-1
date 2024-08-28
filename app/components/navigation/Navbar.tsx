@@ -30,7 +30,7 @@ const Navbar = () => {
   const closeModal = () => setShowModal(false);
 
   return (
-    <nav className="bg-white bg-opacity-90 shadow-md py-4 px-6 fixed top-0 left-0 right-0 z-50">
+    <nav className="bg-white bg-opacity-90 shadow-md py-4 px-6 top-0 left-0 right-0 z-50 drop-shadow-md">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
         <Link href="/">
           <motion.div 

@@ -210,13 +210,13 @@ export default function Annotate() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className=" min-h-screen pb-24"
+      className=""
     >
       {!activeUrl && (
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="text-blue-600 bg-white p-6 rounded-lg shadow-md m-4 flex items-center"
+          className="text-blue-600 bg-white p-2 m-2 rounded-lg shadow-md flex items-center"
         >
           <ImageIcon size={24} className="mr-3 text-blue-500" />
           <span>
@@ -229,7 +229,7 @@ export default function Annotate() {
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-white rounded-lg shadow-md p-4 m-4 flex justify-between items-center"
+          className="bg-white rounded-lg shadow-md p-2 m-2 flex justify-between items-center"
         >
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -255,8 +255,8 @@ export default function Annotate() {
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white rounded-lg shadow-md overflow-y-auto mx-4"
-        style={{ height: "calc(100vh - 300px)" }}
+        className=" rounded-lg shadow-md"
+        // style={{ height: "calc(100vh - 300px)" }}
       >
         {type === "detection" && activeUrl && idDetection && (
           <Detection

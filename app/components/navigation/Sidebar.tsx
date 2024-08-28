@@ -105,7 +105,7 @@ const Sidebar = () => {
   }, [params.id]);
 
   return (
-    <div className="flex h-screen">
+    <div className="flex">
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.aside
@@ -113,27 +113,27 @@ const Sidebar = () => {
             animate={{ width: 300 }}
             exit={{ width: 0 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-col bg-white text-blue-800 shadow-lg"
+            className="flex flex-col bg-white text-blue-800 shadow-lg max-w-56"
           >
             <div className="p-6 bg-blue-50">
-              <div className="flex items-center justify-center mb-6">
+              <div className="flex items-center justify-center m-2">
                 {projectData.imageUrl ? (
                   <motion.img
                     src={projectData.imageUrl}
                     alt="Project Icon"
-                    className={`w-24 h-24 object-cover rounded-full ring-4 ${getRingColor(projectData.type)} shadow-lg`}
+                    className={`w-32 h-32 object-cover rounded-full ring-4 ${getRingColor(projectData.type)} shadow-lg`}
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 260, damping: 20 }}
                   />
                 ) : (
-                  <div className="w-24 h-24 bg-blue-200 rounded-full flex items-center justify-center">
+                  <div className="w-32 h-32 bg-blue-200 rounded-full flex items-center justify-center">
                     <HiMiniPhoto className="w-20 h-20 text-blue-400" />
                   </div>
                 )}
               </div>
-              <h2 className="text-2xl font-bold text-center mb-2">{projectData.name}</h2>
-              <p className="text-sm text-blue-600 text-center mb-4">{projectData.description}</p>
+              <div className="text-2xl font-bold text-center mb-3">{projectData.name}</div>
+              <p className="text-sm text-blue-600 text-center mb-3">{projectData.description}</p>
               <div className="text-center">
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                   projectData.type === "classification" ? "bg-blue-100 text-blue-800" :
@@ -153,13 +153,13 @@ const Sidebar = () => {
       </AnimatePresence>
       <motion.button
         className={`self-center ${
-          isSidebarOpen ? "-ml-4" : "ml-4"
+          isSidebarOpen ? "-ml-1" : "ml-1"
         } z-10 bg-blue-500 text-white p-2 rounded-full focus:outline-none hover:bg-blue-600 transition-all duration-300 shadow-lg`}
         onClick={toggleSidebar}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
       >
-        {isSidebarOpen ? <IoChevronBackOutline size={24} /> : <IoChevronForwardOutline size={24} />}
+        {isSidebarOpen ? <IoChevronBackOutline size={20} /> : <IoChevronForwardOutline size={20} />}
       </motion.button>
     </div>
   );
