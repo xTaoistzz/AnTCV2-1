@@ -44,9 +44,25 @@ export default function LandingPage() {
 
   return (
     <>
+            <Script
+        strategy="afterInteractive"
+        src="https://www.googletagmanager.com/gtag/js?id=G-1ZXLG13S0S"
+      />
+      <Script
+        id="google-analytics"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-1ZXLG13S0S');
+          `,
+        }}
+      />
       <main className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 pt-20">
         <GuestNav />
-        
+
         <section className="container mx-auto px-4 py-20">
           <div className="flex flex-col lg:flex-row items-center justify-between">
             <motion.div 
