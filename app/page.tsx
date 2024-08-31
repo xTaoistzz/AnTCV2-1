@@ -44,7 +44,7 @@ export default function LandingPage() {
 
   return (
     <>
-            <Script
+            {/* <Script
         strategy="afterInteractive"
         src="https://www.googletagmanager.com/gtag/js?id=G-1ZXLG13S0S"
       />
@@ -59,7 +59,7 @@ export default function LandingPage() {
             gtag('config', 'G-1ZXLG13S0S');
           `,
         }}
-      />
+      /> */}
       <main className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 pt-20">
         <GuestNav />
 
