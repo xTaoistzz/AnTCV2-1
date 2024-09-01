@@ -34,6 +34,12 @@ export default function WorkspaceLayout({ children }: { children: ReactNode }) {
     checkAuth();
   }, [router]);
 
-  return <>
-        <Navbar />{children}</>;
+  return  (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-grow relative">
+        {children}
+      </main>
+    </div>
+  );
 }
