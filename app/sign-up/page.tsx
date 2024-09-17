@@ -125,14 +125,14 @@ const SignUp: React.FC = () => {
           {(Object.keys(formData) as Array<keyof FormData>).map((field) => (
             <div key={field} className="mb-4">
               <label className="block text-blue-700 text-sm font-semibold mb-2" htmlFor={field}>
-                {field.charAt(0).toUpperCase() + field.slice(1)}
+                {field === 'conPassword' ? 'Confirm Password' : field.charAt(0).toUpperCase() + field.slice(1)}
               </label>
               <input
                 className="w-full p-3 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 focus:outline-none focus:border-blue-500 transition duration-300"
-                type={field.includes('password') ? 'password' : field === 'email' ? 'email' : 'text'}
+                type={field === 'email' ? 'email' : field === 'password' || field === 'conPassword' ? 'password' : 'text'}
                 id={field}
                 name={field}
-                placeholder={`Enter your ${field}`}
+                placeholder={`Enter your ${field === 'conPassword' ? 'password again' : field}`}
                 value={formData[field]}
                 onChange={handleChange}
                 onFocus={handleFocus}
